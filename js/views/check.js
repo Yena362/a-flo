@@ -75,13 +75,13 @@ export default {
       </section>
 
       <section class="card stack">
-        <div class="between"><h2 class="card-title">${icon('folder_zip')}과제 원문 파일 업로드</h2><span class="chip xs">DOCX · TXT</span></div>
+        <div class="between"><h2 class="card-title">${icon('folder_zip')}과제 원문 파일 업로드</h2><span class="chip xs">HWP · PDF · DOCX</span></div>
         <label class="lbl">과제 이름<input name="title" type="text" placeholder="예: 경영전략론 중간보고서" value="${esc(d.title || '')}"></label>
         <div id="file-slot">${d.text ? `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b>${esc(d.title || '불러온 과제')}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${d.text.replace(/\s+/g, ' ').trim().length.toLocaleString()}자 · 불러오기 완료</div></div></div>` : ''}</div>
         <label class="drop" id="drop">
-          <input type="file" id="file" accept=".docx,.txt,.md,.pdf,.hwp,.hwpx" class="sr">
+          <input type="file" id="file" accept=".hwp,.hwpx,.pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="sr">
           ${icon('cloud_upload')}
-          <span><b>파일을 끌어다 놓거나 눌러서 선택</b><br><span class="sm muted">PDF·HWP는 준비 중이에요. 내용을 붙여 넣어 주세요.</span></span>
+          <span><b>눌러서 파일 선택</b> <span class="sm muted">(PC는 끌어다 놓기)</span><br><span class="sm muted">한글(HWP·HWPX) · PDF · 워드(DOCX) · TXT</span></span>
         </label>
         <details class="paste" ${d.text ? '' : 'open'}>
           <summary>본문 직접 붙여 넣기 / 확인</summary>
@@ -113,17 +113,34 @@ export default {
       b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
     }));
 
-    const showFile = (name, chars) => {
-      root.querySelector('#file-slot').innerHTML = `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b>${esc(name)}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${chars.toLocaleString()}자 · 업로드 완료</div></div></div>`;
+    const slot = root.querySelector('#file-slot');
+    const KIND = { hwp: '한글', hwpx: '한글', pdf: 'PDF', docx: '워드', txt: '텍스트', md: '텍스트' };
+    const showFile = (name, chars, kind = '') => {
+      slot.innerHTML = `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b class="ellipsis">${esc(name)}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${kind ? `${kind} · ` : ''}${chars.toLocaleString()}자 · 불러오기 완료</div></div><label class="btn sm" for="file">${icon('refresh')}바꾸기</label></div>`;
     };
     const loadFile = async file => {
       if (!file) return;
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      if (file.size > 30 * 1024 * 1024) {
+        slot.innerHTML = `<div class="file err">${icon('error', 'fill')}<div class="grow"><b>파일이 너무 커요 (30MB 이하)</b><div class="sm b">본문만 복사해서 아래에 붙여 넣어 주세요.</div></div></div>`;
+        return;
+      }
+      slot.innerHTML = `<div class="file busy">${icon('progress_activity', 'spin')}<div class="grow"><b class="ellipsis">${esc(file.name)}</b><div class="sm muted b">${ext === 'pdf' ? 'PDF 읽기 도구를 불러와 글자를 읽는 중…' : '파일에서 글자를 읽는 중…'}</div></div></div>`;
+      submit.disabled = true;
       try {
-        text.value = await readAssignmentFile(file);
+        const body = (await readAssignmentFile(file)).trim();
+        if (body.replace(/\s/g, '').length < 20) throw new Error('파일에서 읽을 수 있는 글자가 거의 없어요. 내용을 붙여 넣어 주세요.');
+        text.value = body;
         if (!form.title.value) form.title.value = file.name.replace(/\.[^.]+$/, '');
-        showFile(file.name, text.value.replace(/\s+/g, ' ').trim().length);
+        showFile(file.name, body.replace(/\s+/g, ' ').length, KIND[ext]);
+        const det = form.querySelector('details.paste');
+        if (det) det.open = false;
+      } catch (e) {
+        slot.innerHTML = `<div class="file err">${icon('error', 'fill')}<div class="grow"><b class="ellipsis">${esc(file.name)}</b><div class="sm b">${esc(e.message)}</div></div><label class="btn sm" for="file">다시 선택</label></div>`;
+      } finally {
+        form.querySelector('#file').value = '';
         update();
-      } catch (e) { toast(e.message); }
+      }
     };
     const drop = form.querySelector('#drop');
     form.querySelector('#file').addEventListener('change', e => loadFile(e.target.files[0]));

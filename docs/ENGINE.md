@@ -70,7 +70,8 @@ const result = analyze({
 
 | 파일 | 함수 | 용도 |
 |---|---|---|
-| `docx.js` | `readAssignmentFile(file)` | 업로드한 DOCX·TXT에서 글자 뽑기 (PDF·HWP는 준비 중이라 오류 메시지를 돌려줌) |
+| `docx.js` | `readAssignmentFile(file)` | 업로드 파일에서 글자 뽑기: **HWP·HWPX·PDF·DOCX·TXT** (암호·배포용 한글, 스캔 PDF는 이유를 담은 오류) |
+| `hwp.js` | `extractHwpText(buffer)` | 한글 5.x(.hwp) 본문 추출 — 라이브러리 없이 복합 파일·레코드 직접 해석 |
 | `quiz-bank.js` | `dailyQuestion(mode, '2026-11-07')` | 오늘의 퀴즈 1문제 (`mode`: `'assignment'` 또는 `'exam'`) |
 | `store.js` | `currentStreak()`, `recordCorrect()` | 불꽃 연속 일수, 정답 시 불꽃·검사권 +1 |
 | `mascot.js` | `mascot('chick', 'danger', 96)` | 캐릭터 그림 HTML (디자인 PNG가 있으면 PNG 사용) |

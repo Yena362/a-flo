@@ -36,7 +36,8 @@ js/
   ai.js          ← 규칙 + Gemini AI 채점을 합쳐서 돌려주기 (화면에서 부르는 함수)
   ai-prompt.js   ← Gemini에게 주는 채점 지시문
   ai-merge.js    ← 규칙 점수와 AI 점수를 합치는 방법
-  docx.js        ← 워드(.docx) 파일에서 글자만 뽑아내기
+  docx.js        ← 업로드 파일 읽기: 한글(HWP·HWPX)·PDF·워드(DOCX)·TXT
+  hwp.js         ← 한글(.hwp) 파일 해석 (라이브러리 없이)
   quiz-bank.js   ← 1분 퀴즈 문제 은행 (과제 모드 10문제 + 시험 모드 10문제)
   store.js       ← 연속 학습(불꽃), 검사권, 검사 기록 저장
   mascot.js      ← 캐릭터 4종(삐약이·학점이·불씨·에이) 그림과 표정

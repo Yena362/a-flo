@@ -348,3 +348,12 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 
 /* 긴 입력 화면에서 '분석 시작' 버튼을 탭바 위에 고정 */
 .sticky-cta { position: sticky; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 12; padding-top: 8px; background: linear-gradient(rgba(245, 248, 255, 0), var(--bg) 40%); }
+
+/* 파일 카드 상태 */
+.file.busy { background: var(--tint); border-color: #C6D8F5; }
+.file.busy .ms { color: #2F80ED; font-size: 28px; }
+.file.err { background: #FFF4F4; border-color: #FFB4B4; color: var(--red-ink); }
+.file.err .ms { color: var(--red); font-size: 28px; }
+.file .btn.sm { flex-shrink: 0; }
+.ellipsis { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms.spin { animation: spin 1s linear infinite; }
