@@ -1,5 +1,5 @@
 // 프리미엄: 자료 노트북 + 시험 대비 팩
-//   - 강의자료(HWP·PDF·DOCX·TXT·붙여넣기)를 최대 10개까지 올림
+//   - 강의자료(HWP·PDF·DOCX·PPTX·TXT·붙여넣기·강의 받아 적기)를 최대 10개까지 올림
 //   - 질문하기: 올린 자료로만 답하고, 근거 문장(출처)을 함께 보여 줌
 //   - 시험 대비 팩: 요약 노트 · 예상 문제 · 암기 카드 · 개념 지도
 import { topbar, tabbar, icon, esc, toast, mascotTalk } from '../ui.js';
@@ -7,6 +7,7 @@ import { mascot } from '../mascot.js';
 import { isPremium } from '../plan.js';
 import { readAssignmentFile } from '../docx.js';
 import { mountMindmap } from '../mindmap.js';
+import { canRecord, recState, startRec, stopRec, finishRec, onRec, elapsedMs, clock } from '../lecture-rec.js';
 import { study, loadNotebook, saveNotebook, sourcesKey, MAX_SOURCES, MAX_SOURCES_TEXT } from '../study.js';
 
 const TOOLS = {
@@ -31,7 +32,7 @@ function locked(store) {
     <div class="row wrap"><span class="chip ink">${icon('workspace_premium', 'fill')}PREMIUM</span></div>
     <h1 class="h2">자료 노트북 · 시험 대비 팩</h1>
     <ul class="checklist">
-      ${['강의 PDF·한글·워드 파일을 최대 10개까지 올려요', '질문하면 올린 자료에서만 찾아 답하고 근거 문장을 보여 줘요', '요약 노트 · 예상 문제 · 암기 카드 · 개념 지도를 한 번에 만들어요'].map(t => `<li class="met">${icon('check_circle', 'fill')}<b>${t}</b></li>`).join('')}
+      ${['강의 PDF·PPT·한글·워드 파일을 최대 10개까지 올려요', '수업 중에 켜 두면 강의를 실시간으로 받아 적어 자료로 저장해요', '질문하면 올린 자료에서만 찾아 답하고 근거 문장을 보여 줘요', '요약 노트 · 예상 문제 · 암기 카드 · 개념 지도를 한 번에 만들어요'].map(t => `<li class="met">${icon('check_circle', 'fill')}<b>${t}</b></li>`).join('')}
     </ul>
     <a class="btn orange big" href="#/premium">${icon('workspace_premium', 'fill')}프리미엄 알아보기</a>
   </section>
@@ -46,13 +47,14 @@ function sourcesCard(nb, session) {
       <span class="src-no">${i + 1}</span>
       <span class="grow"><b class="ellipsis">${esc(s.name)}</b><span class="xs muted b">${chars(s.text).toLocaleString()}자</span></span>
       <button class="btn sm icon-btn" data-del-src="${s.id}" aria-label="${esc(s.name)} 삭제">${icon('delete')}</button>
-    </li>`).join('')}</ul>` : '<p class="sm muted b" style="margin:0">강의 PDF, 한글(HWP), 워드 파일이나 필기 내용을 올려 주세요.</p>'}
+    </li>`).join('')}</ul>` : '<p class="sm muted b" style="margin:0">강의 PDF, PPT, 한글(HWP), 워드 파일이나 필기 내용을 올려 주세요. 수업 중이면 강의를 바로 받아 적을 수도 있어요.</p>'}
     <div id="nb-status">${session.nbReading ? `<div class="file busy">${icon('progress_activity', 'spin')}<div class="grow"><b>${esc(session.nbReading)}</b></div></div>` : ''}</div>
     <div class="two">
       <label class="btn sm" for="nb-file">${icon('add')}파일 추가</label>
       <button class="btn sm" id="nb-paste-toggle">${icon('content_paste')}텍스트 붙여넣기</button>
     </div>
-    <input type="file" id="nb-file" class="sr" multiple accept=".hwp,.hwpx,.pdf,.docx,.txt,.md,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwp,application/vnd.hancom.hwpx,application/hwp+zip,application/octet-stream,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+    ${recPanel()}
+    <input type="file" id="nb-file" class="sr" multiple accept=".hwp,.hwpx,.pdf,.docx,.pptx,.txt,.md,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwp,application/vnd.hancom.hwpx,application/hwp+zip,application/octet-stream,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
     ${session.nbPaste ? `<div class="stack" style="gap:8px">
       <input type="text" id="nb-paste-name" placeholder="자료 이름 (예: 3주차 필기)">
       <textarea id="nb-paste-text" rows="5" placeholder="필기·강의 내용을 붙여 넣으세요."></textarea>
@@ -60,6 +62,32 @@ function sourcesCard(nb, session) {
     </div>` : ''}
     <p class="xs muted b" style="margin:0">전체 ${MAX_SOURCES_TEXT.toLocaleString()}자까지 · 올린 자료는 이 기기에만 보관돼요</p>
   </section>`;
+}
+
+// 강의 받아 적기 (말소리 → 글자, 문장마다 [분:초])
+function recPanel() {
+  const r = recState();
+  if (!r) {
+    return `<button class="btn sm rec-start" id="rec-start" ${canRecord ? '' : 'disabled'}>${icon('mic', 'fill')}강의 받아 적기${canRecord ? '' : ' (Chrome·Edge·Safari에서 가능)'}</button>`;
+  }
+  return `<div class="rec-panel stack" style="gap:10px">
+    <div class="between">
+      <b class="row">${r.recording ? '<span class="rec-dot" aria-hidden="true"></span>받아 적는 중' : `${icon('pause_circle', 'fill')}잠시 멈춤`}</b>
+      <span class="chip xs" id="rec-clock">${clock(elapsedMs())}</span>
+    </div>
+    ${r.error ? `<p class="xs b t-red" style="margin:0">${esc(r.error)}</p>` : ''}
+    <div class="rec-live" id="rec-live" aria-live="polite">${recLiveHtml(r)}</div>
+    ${r.recording
+      ? `<button class="btn sm" id="rec-stop">${icon('stop_circle', 'fill')}멈추기</button>`
+      : `<div class="two"><button class="btn sm" id="rec-resume">${icon('mic', 'fill')}이어서 받아 적기</button><button class="btn sm green" id="rec-save" ${r.text.trim() ? '' : 'disabled'}>${icon('save', 'fill')}자료로 저장</button></div>
+         <button class="link sm" id="rec-discard">받아 적은 내용 버리기</button>`}
+    <p class="xs muted b" style="margin:0">노트북·휴대폰 마이크를 교수님 쪽으로 두세요. 인터넷이 연결되어 있어야 하고, 녹음 파일은 남기지 않고 글자만 저장해요. 수업을 녹음하기 전에 교수님께 허락을 받아 주세요.</p>
+  </div>`;
+}
+function recLiveHtml(r) {
+  if (!r.text && !r.interim) return `<span class="muted">${r.recording ? '말소리를 기다리는 중…' : '받아 적은 내용이 없어요.'}</span>`;
+  const lines = r.text.split('\n').slice(-30).map(l => esc(l)).join('\n');
+  return `${lines}${r.interim ? `${lines ? '\n' : ''}<span class="muted">${esc(r.interim)}</span>` : ''}`;
 }
 
 function askPanel(nb, session, mk) {
@@ -192,6 +220,37 @@ export default {
       rerender();
       if (added) toast(`자료 ${added}개를 추가했어요`);
     });
+    // 강의 받아 적기
+    const cleanups = [];
+    root.querySelector('#rec-start')?.addEventListener('click', () => { startRec(); rerender(); });
+    root.querySelector('#rec-resume')?.addEventListener('click', () => { startRec(); rerender(); });
+    root.querySelector('#rec-stop')?.addEventListener('click', () => { stopRec(); rerender(); });
+    root.querySelector('#rec-discard')?.addEventListener('click', () => {
+      if (!window.confirm || window.confirm('받아 적은 내용을 버릴까요? 되돌릴 수 없어요.')) { finishRec(); rerender(); }
+    });
+    root.querySelector('#rec-save')?.addEventListener('click', () => {
+      const r = recState();
+      if (!r?.text.trim()) return;
+      const d = new Date(r.startedAt);
+      const z = n => String(n).padStart(2, '0');
+      const name = `강의 받아 적기 ${d.getMonth() + 1}/${d.getDate()} ${z(d.getHours())}:${z(d.getMinutes())}`;
+      if (addSource(name, r.text)) { finishRec(); rerender(); toast('받아 적은 강의를 자료로 저장했어요'); }
+    });
+    const live = root.querySelector('#rec-live');
+    if (live) {
+      let wasRecording = recState()?.recording;
+      cleanups.push(onRec(r => {
+        if (!r || r.recording !== wasRecording || r.error) { rerender(); return; }
+        live.innerHTML = recLiveHtml(r);
+        live.scrollTop = live.scrollHeight;
+      }));
+      live.scrollTop = live.scrollHeight;
+      const clockEl = root.querySelector('#rec-clock');
+      const t = setInterval(() => { if (clockEl) clockEl.textContent = clock(elapsedMs()); }, 1000);
+      cleanups.push(() => clearInterval(t));
+    }
+    const cleanupAll = () => cleanups.forEach(f => f());
+
     root.querySelector('#nb-paste-toggle')?.addEventListener('click', () => { session.nbPaste = !session.nbPaste; rerender(); });
     root.querySelector('#nb-paste-add')?.addEventListener('click', () => {
       const name = root.querySelector('#nb-paste-name').value.trim() || `필기 ${nb().sources.length + 1}`;
@@ -254,13 +313,14 @@ export default {
     const mapData = nb().results?.map?.data;
     if (mmHost && mapData) {
       session.mm = session.mm || {};
-      return mountMindmap(mmHost, mapData, session.mm, {
+      cleanups.push(mountMindmap(mmHost, mapData, session.mm, {
         onAsk: (label, parent) => {
           session.nbTool = 'ask';
           ask(`'${label}'${parent ? `(${parent})` : ''}에 대해 올린 자료를 바탕으로 설명해 줘`);
           window.scrollTo({ top: 0 });
         },
-      });
+      }) || (() => {}));
     }
+    return cleanupAll;
   },
 };

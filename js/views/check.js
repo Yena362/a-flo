@@ -88,7 +88,7 @@ export default {
         <label class="lbl">과제 이름<input name="title" type="text" placeholder="예: 경영전략론 중간보고서" value="${esc(d.title || '')}"></label>
         <div id="file-slot">${d.text ? fileCard(d.fileName || d.title || '불러온 과제', d.text.replace(/\s+/g, ' ').trim().length, d.fileKind) : ''}</div>
         <label class="drop" id="drop">
-          <input type="file" id="file" accept=".hwp,.hwpx,.pdf,.docx,.txt,.md,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwp,application/vnd.hancom.hwpx,application/hwp+zip,application/octet-stream,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="sr">
+          <input type="file" id="file" accept=".hwp,.hwpx,.pdf,.docx,.pptx,.txt,.md,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwp,application/vnd.hancom.hwpx,application/hwp+zip,application/octet-stream,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="sr">
           ${icon('cloud_upload')}
           <span><b>눌러서 파일 선택</b> <span class="sm muted">(PC는 끌어다 놓기)</span><br><span class="sm muted">한글(HWP·HWPX) · PDF · 워드(DOCX) · TXT</span></span>
         </label>
@@ -132,7 +132,7 @@ export default {
     }));
 
     const slot = root.querySelector('#file-slot');
-    const KIND = { hwp: '한글', hwpx: '한글', pdf: 'PDF', docx: '워드', txt: '텍스트', md: '텍스트' };
+    const KIND = { hwp: '한글', hwpx: '한글', pdf: 'PDF', docx: '워드', pptx: 'PPT', txt: '텍스트', md: '텍스트' };
     let loaded = { fileName: store.get().draft?.fileName || '', fileKind: store.get().draft?.fileKind || '' };
     // 과제 이름: 자동으로 채운 이름은 새 파일을 올리면 따라 바뀌고, 직접 입력한 이름은 그대로 둠
     const t0 = form.title.value.trim();

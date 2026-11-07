@@ -4,6 +4,7 @@ import { mascot } from '../mascot.js';
 import { dailyQuestion } from '../quiz-bank.js';
 import { today } from '../store.js';
 import { isPremium, remaining, FREE_DAILY_FILES } from '../plan.js';
+import { study, loadNotebook, saveNotebook, sourcesKey } from '../study.js';
 
 // 퀴즈는 시험 모드(전공 핵심 개념)만 운영
 const MODE = 'exam';
@@ -11,6 +12,18 @@ const TOPIC = '시험 대비 · 전공 개념';
 const LETTERS = ['A', 'B', 'C', 'D'];
 const REWARD = { gems: 50, xp: 30, streakBonusXp: 20 };
 let selected = null; // 제출 전 고른 보기
+
+// 노트북에 올린 강의자료로 만든 예상 문제가 있으면 그걸로, 없으면 기본 문제 은행으로
+function quizSource() {
+  const nb = loadNotebook();
+  const made = nb.results?.quiz;
+  const qs = (made?.data?.questions || []).filter(q => q?.q && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length);
+  if (nb.sources.length && qs.length) {
+    return { mine: true, list: qs, sources: nb.sources, key: `${today()}:mine:${made.at || 0}`, topic: '내 강의자료 예상 문제', fresh: made.key === sourcesKey(nb.sources) };
+  }
+  return { mine: false, list: undefined, sources: nb.sources, key: `${today()}:${MODE}`, topic: TOPIC, fresh: false };
+}
+const REWARD_KEY = () => `${today()}:${MODE}`; // 보상은 하루 한 번 (문제 출처와 상관없이)
 
 function week(streak, solved) {
   const now = new Date();
@@ -30,9 +43,11 @@ export default {
     const { s, stageName, name, streak } = player();
     const solved = store.solvedToday();
     const broken = store.streakBroken();
-    const key = `${today()}:${MODE}`;
+    const src = quizSource();
+    const key = src.key;
     const st = s.quizToday[key] || { offset: 0 };
-    const q = dailyQuestion(MODE, today(), st.offset);
+    const q = dailyQuestion(MODE, today(), st.offset, src.list);
+    const fromName = src.mine && Number.isInteger(q.source) ? src.sources[q.source - 1]?.name : '';
     const done = st.picked != null;
     const correct = done && st.picked === q.answer;
     const due = dday(s.draft?.dueDate);
@@ -61,10 +76,13 @@ export default {
 
     <section class="card quiz stack" style="gap:16px">
       <div class="row wrap">
-        <span class="chip blue">${icon('timer')}오늘의 1분 퀴즈 · ${TOPIC}</span>
+        <span class="chip blue">${icon(src.mine ? 'menu_book' : 'timer')}오늘의 1분 퀴즈 · ${src.topic}</span>
         <span class="chip blue">${icon('diamond', 'fill')}+${REWARD.gems} 보상</span>
         ${st.offset ? `<span class="chip">추가 문제 ${st.offset}</span>` : ''}
       </div>
+      ${fromName ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('description')}출처: ${esc(fromName)}</p>` : ''}
+      ${session.homeQuizBusy ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('progress_activity', 'spin')}올린 강의자료로 예상 문제를 만드는 중이에요. 다 되면 여기로 바뀌어요.</p>` : ''}
+      ${!src.mine && !src.sources.length && isPremium() ? `<p class="xs muted b" style="margin:-6px 0 0"><a href="#/notebook">자료 노트북</a>에 강의자료를 올리면 내 자료로 문제가 나와요.</p>` : ''}
       <h2 class="q">${esc(q.q)}</h2>
       <p class="muted b" style="margin:-6px 0 0">정답을 고르고 감점 방어 팁을 확인해 보세요!</p>
       <div class="options" role="radiogroup" aria-label="보기">
@@ -115,7 +133,8 @@ export default {
   },
 
   mount(root, { store, session, rerender }) {
-    const key = `${today()}:${MODE}`;
+    const src = quizSource();
+    const key = src.key;
     const saveQ = patch => {
       const all = { ...store.get().quizToday };
       for (const k of Object.keys(all)) if (!k.startsWith(today())) delete all[k];
@@ -131,13 +150,13 @@ export default {
     root.querySelector('#submit')?.addEventListener('click', () => {
       if (selected == null) return;
       const st = store.get().quizToday[key] || { offset: 0 };
-      const q = dailyQuestion(MODE, today(), st.offset);
+      const q = dailyQuestion(MODE, today(), st.offset, src.list);
       const picked = selected;
       selected = null;
       saveQ({ picked });
       if (picked === q.answer) {
         const r = store.recordCorrect();
-        const rewardedKey = store.get().rewarded?.[key];
+        const rewardedKey = store.get().rewarded?.[REWARD_KEY()];
         let gems = 0, xp = 0;
         if (!rewardedKey) {
           gems = REWARD.gems; xp = REWARD.xp;
@@ -145,7 +164,7 @@ export default {
           store.addReward({ gems, xp });
           const rw = {};
           for (const [k, v] of Object.entries(store.get().rewarded || {})) if (k.startsWith(today())) rw[k] = v;
-          store.set({ rewarded: { ...rw, [key]: true } });
+          store.set({ rewarded: { ...rw, [REWARD_KEY()]: true } });
         }
         session.reward = { gems, xp, streak: r.streak, firstToday: r.firstToday, explain: q.explain };
       }
@@ -158,6 +177,25 @@ export default {
       selected = null;
       rerender();
     });
+
+    // 강의자료는 있는데 예상 문제가 아직 없거나 자료가 바뀌었으면 뒤에서 한 번 만들어 둔다 (프리미엄)
+    const nbNow = loadNotebook();
+    if (isPremium() && nbNow.sources.length && !src.fresh && !session.homeQuizBusy && session.homeQuizTried !== sourcesKey(nbNow.sources)) {
+      const k = sourcesKey(nbNow.sources);
+      session.homeQuizTried = k;
+      session.homeQuizBusy = true;
+      study('quiz', { sources: nbNow.sources })
+        .then(data => {
+          const cur = loadNotebook();
+          saveNotebook({ results: { ...cur.results, quiz: { key: k, data, at: Date.now() } } });
+        })
+        .catch(() => { /* 실패하면 기본 문제 그대로 */ })
+        .finally(() => {
+          session.homeQuizBusy = false;
+          if (/^(#\/?)?(home|quiz)?(\?|$)/.test(location.hash)) rerender();
+        });
+      setTimeout(rerender);
+    }
 
     const close = () => { session.reward = null; rerender(); };
     root.querySelector('#close-reward')?.addEventListener('click', close);
