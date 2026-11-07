@@ -49,3 +49,12 @@ test('확장자별로 알맞은 읽기 방법 선택', async () => {
   assert.match(await readAssignmentFile(file('과제.HWPX', await load('sample.hwpx'))), /^서론\n/);
   await assert.rejects(readAssignmentFile(file('과제.doc', new ArrayBuffer(4))), /\.docx로 저장/);
 });
+
+test('PPTX: 슬라이드 번호 순서대로, 발표자 노트 포함', async () => {
+  const { extractPptxText } = await import('../js/docx.js');
+  const text = await extractPptxText(await load('sample.pptx'));
+  assert.match(text, /^\[슬라이드 1\]\n1주차 핵심 개념\n통화승수 = 1 \/ 지급준비율\n지급준비율이 낮을수록 통화량 증가 & 신용창조\n\(발표자 노트\) 시험에 꼭 나옴 \(1\)/);
+  assert.ok(text.indexOf('[슬라이드 2]') < text.indexOf('[슬라이드 10]'));
+  assert.match(text, /\[슬라이드 11\]\n11주차 핵심 개념\n내용 11\n\(발표자 노트\) 시험에 꼭 나옴 \(11\)$/);
+  assert.equal((text.match(/발표자 노트/g) || []).length, 2);
+});
