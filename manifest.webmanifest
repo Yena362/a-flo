@@ -3,7 +3,7 @@
   "short_name": "에이플로",
   "description": "교수님 스타일까지 읽고, 제출 전에 예상 학점과 감점 포인트를 짚어 주는 AI 과제 코치",
   "lang": "ko",
-  "start_url": "./#/home",
+  "start_url": "./#/check",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
