@@ -2,6 +2,7 @@
 //   DOCX, HWPX : zip 안의 XML (라이브러리 없이, 브라우저 내장 압축 해제 사용)
 //   HWP        : js/hwp.js (복합 파일 + 레코드 직접 해석)
 //   PDF        : Mozilla pdf.js를 필요할 때만 CDN에서 불러옴 (글자가 들어 있는 PDF만, 스캔 이미지는 불가)
+//   PPTX       : zip 안의 슬라이드 XML + 발표자 노트
 //   TXT, MD    : 그대로
 import { extractHwpText } from './hwp.js';
 
@@ -113,6 +114,38 @@ export async function extractHwpxText(arrayBuffer) {
   return tidy(names.map(n => hwpxSectionToText(files[n])).join('\n'));
 }
 
+// ---------- PPTX (파워포인트 강의자료) ----------
+// 슬라이드 글자 + 발표자 노트를 슬라이드 순서대로 뽑는다
+export function pptxSlideToText(xml) {
+  return xml
+    .split(/<\/a:p>/)
+    .map(p => {
+      let s = '';
+      const re = /<a:t(?:\s[^>]*)?>([^<]*)<\/a:t>|<a:br[^>]*\/>/g;
+      let m;
+      while ((m = re.exec(p))) s += m[1] !== undefined ? m[1] : '\n';
+      return decodeEntities(s).trim();
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
+export async function extractPptxText(arrayBuffer) {
+  const files = await readZipTexts(arrayBuffer, n => /^ppt\/(slides\/slide\d+\.xml|slides\/_rels\/slide\d+\.xml\.rels|notesSlides\/notesSlide\d+\.xml)$/.test(n));
+  const num = n => Number(n.match(/(\d+)\.xml/)[1]);
+  const slides = Object.keys(files).filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a, b) => num(a) - num(b));
+  if (!slides.length) throw new Error('파워포인트 슬라이드를 찾지 못했어요.');
+  const out = slides.map((n, i) => {
+    const rels = files[`ppt/slides/_rels/${n.split('/').pop()}.rels`] || '';
+    const note = rels.match(/Target="\.\.\/notesSlides\/(notesSlide\d+\.xml)"/);
+    const body = pptxSlideToText(files[n]);
+    // 노트에 들어 있는 슬라이드 번호 칸(숫자, <number>, ‹#›)은 뺀다
+    const notes = note && files[`ppt/notesSlides/${note[1]}`] ? pptxSlideToText(files[`ppt/notesSlides/${note[1]}`]).split('\n').filter(l => !/^(\d+|<number>|‹#›)$/.test(l.trim())).join('\n') : '';
+    return `[슬라이드 ${i + 1}]\n${body}${notes ? `\n(발표자 노트) ${notes}` : ''}`;
+  });
+  return tidy(out.join('\n\n'));
+}
+
 // ---------- PDF (pdf.js) ----------
 export async function extractPdfText(arrayBuffer, onProgress = () => {}) {
   let pdfjs;
@@ -148,7 +181,9 @@ export async function readAssignmentFile(file, onProgress = () => {}) {
   if (ext === 'docx') return extractDocxText(await file.arrayBuffer());
   if (ext === 'hwpx') return extractHwpxText(await file.arrayBuffer());
   if (ext === 'hwp') return extractHwpText(await file.arrayBuffer());
+  if (ext === 'pptx') return extractPptxText(await file.arrayBuffer());
+  if (ext === 'ppt') throw new Error('예전 파워포인트(.ppt) 파일은 읽을 수 없어요. .pptx로 저장하거나 PDF로 내보내 주세요.');
   if (ext === 'pdf') { onProgress('PDF 읽기 도구를 불러오는 중…'); return extractPdfText(await file.arrayBuffer(), onProgress); }
   if (ext === 'doc') throw new Error('예전 워드(.doc) 파일은 읽을 수 없어요. .docx로 저장해 주세요.');
-  throw new Error('HWP · HWPX · DOCX · PDF · TXT 파일을 올려 주세요.');
+  throw new Error('HWP · HWPX · DOCX · PPTX · PDF · TXT 파일을 올려 주세요.');
 }

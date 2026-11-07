@@ -67,9 +67,10 @@ export const QUIZ = {
 };
 
 // 날짜별로 정해지는 오늘의 문제 (offset: 틀렸을 때 다음 문제)
-export function dailyQuestion(mode, dateKey, offset = 0) {
-  const list = QUIZ[mode] || QUIZ.exam;
+// list를 주면 그 문제들(예: 내 강의자료로 만든 문제) 중에서 고른다
+export function dailyQuestion(mode, dateKey, offset = 0, list = QUIZ[mode] || QUIZ.exam) {
   let h = 0;
   for (const ch of dateKey + mode) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return { ...list[(h + offset) % list.length], index: (h + offset) % list.length };
+  const i = (h + offset) % list.length;
+  return { ...list[i], index: i };
 }
