@@ -84,7 +84,7 @@ export default {
       ${done
         ? `<div class="explain ${correct ? 'safe' : 'danger'}"><b>${correct ? '정답이에요! 감점 방어 완료' : `아깝다! 정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p></div>
            ${correct ? '' : '<button class="btn orange big" id="next">' + icon('refresh') + '다른 문제 도전</button>'}`
-        : `<button class="btn dkgreen big" id="submit" ${selected == null ? 'disabled' : ''}>${icon('verified', 'fill')}정답 확인하고 보너스 받기 (+${REWARD.gems}💎)</button>`}
+        : `<button class="btn dkgreen big" id="submit" ${selected == null ? 'disabled' : ''}>${icon('verified', 'fill')}정답 확인하고 +${REWARD.gems}💎 받기</button>`}
     </section>
 
     <section class="card tint stack">

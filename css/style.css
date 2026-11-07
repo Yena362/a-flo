@@ -265,7 +265,7 @@ mark.hl.sel { outline: 3px solid var(--ink); outline-offset: 1px; }
 .empty-state { text-align: center; padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
 /* 하단 탭 */
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: rgba(255, 255, 255, .96); border-top: 2px solid #EDF1F7; padding: 8px max(8px, calc((100vw - 640px) / 2)) calc(10px + env(safe-area-inset-bottom)); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 2px solid #EDF1F7; box-shadow: 0 -6px 16px rgba(27, 43, 71, .06); padding: 8px max(8px, calc((100vw - 640px) / 2)) calc(10px + env(safe-area-inset-bottom)); }
 .tabbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; font-size: 12px; white-space: nowrap; font-weight: 800; color: var(--ink-2); text-decoration: none; }
 .tabbar a .ms { font-size: 30px; }
 .tabbar a.on { color: var(--green); }
