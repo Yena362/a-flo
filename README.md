@@ -31,6 +31,9 @@ js/
   docx.js        ← 워드(.docx) 파일에서 글자만 뽑아내기
   quiz-bank.js   ← 1분 퀴즈 문제 은행 (과제 모드 10문제 + 시험 모드 10문제)
   store.js       ← 연속 학습(불꽃), 검사권, 검사 기록 저장
+  cloud.js       ← Firebase 연결: Google 로그인 + 기록 클라우드 백업 (docs/FIREBASE.md)
+  merge.js       ← 기기 기록과 클라우드 기록을 합치는 규칙
+  firebase-config.js ← Firebase 프로젝트 설정값 (YOUR_ 3곳 채우기)
   mascot.js      ← 캐릭터 4종(삐약이·학점이·불씨·에이) 그림과 표정
   sample.js      ← 시연용 예시 과제 (일부러 틀린 곳을 넣어 둠)
 assets/mascot/   ← 디자인팀 PNG를 넣는 곳 (넣는 법은 그 폴더의 README)
