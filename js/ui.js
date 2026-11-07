@@ -18,7 +18,7 @@ export function player() {
 export function topbar() {
   const { s, lv, streak } = player();
   return `<header class="topbar">
-    <a class="avatar" href="#/home" aria-label="홈으로">${mascot(s.mascot, 'default', 40)}</a>
+    <a class="avatar" href="#/check" aria-label="과제 검사로">${mascot(s.mascot, 'default', 40)}</a>
     <div class="pills">
       <span class="pill flame" title="연속 학습">${icon('local_fire_department', 'fill')}<b>${streak}일</b></span>
       <span class="pill gem" title="보유 다이아">${icon('diamond', 'fill')}<b>${s.gems.toLocaleString()}</b></span>
@@ -29,10 +29,10 @@ export function topbar() {
 }
 
 const TABS = [
-  ['home', '홈', 'cottage'],
-  ['check', '과제 제출', 'upload_file'],
+  ['check', '과제 검사', 'upload_file'],
   ['result', '점수 진단', 'analytics'],
   ['editor', '교정', 'spellcheck'],
+  ['home', '1분 퀴즈', 'quiz'],
   ['notebook', '노트북', 'menu_book'],
 ];
 

@@ -1,5 +1,5 @@
 // 화면 전환(해시 라우터). 화면을 추가하려면 views/ 에 파일을 만들고 아래 routes에 등록하세요.
-// 하단 탭 4개: 홈(퀴즈 포함) · 과제 제출(분석 진행 포함) · 점수 진단 · 교정 에디터  (+ 마이)
+// 첫 화면은 과제 검사. 하단 탭: 과제 검사(분석 진행 포함) · 점수 진단 · 교정 · 퀴즈(홈) · 노트북  (+ 마이)
 import * as store from './store.js';
 import { analyze } from './analyzer.js';
 import { reapply } from './ai.js';
@@ -22,6 +22,7 @@ const session = {
   aiError: null,
   baseScore: null,   // 처음 검사했을 때 점수 (교정 후 상승폭 표시용)
   ignored: new Set(),
+  edits: [],         // 교정 에디터 수정 기록 [{ title, old, fix, prev, before, after }] (되돌리기용)
   ensureResult() {
     if (!this.input && store.get().draft) this.input = store.get().draft;
     if (!this.input?.text?.trim()) return null; // 파일을 지웠거나 아직 올리지 않음
@@ -40,7 +41,7 @@ const session = {
 function parse() {
   const [raw, query = ''] = location.hash.replace(/^#\/?/, '').split('?');
   const path = ALIASES[raw] || raw;
-  return { name: routes[path] ? path : 'home', params: new URLSearchParams(query) };
+  return { name: routes[path] ? path : 'check', params: new URLSearchParams(query) };
 }
 
 let cleanup = null;
