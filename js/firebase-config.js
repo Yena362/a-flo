@@ -5,9 +5,9 @@
 // YOUR_ 로 시작하는 3곳을 채워 주세요:
 // Firebase 콘솔 → 프로젝트 설정(톱니바퀴) → 일반 → 내 앱 → 웹 앱 → SDK 설정 및 구성 → "구성"
 export const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'a-flo-e02b3.firebaseapp.com',
-  projectId: 'a-flo-e02b3',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: "AIzaSyAnfupqM6N-RkK2I7BbmjQ_HRV5UKhRSSg",
+  authDomain: "a-flo-e02b3.firebaseapp.com",
+  projectId: "a-flo-e02b3",
+  messagingSenderId: "358466866102",
+  appId: "1:358466866102:web:42380de76024732f450f17"
 };
