@@ -1,10 +1,10 @@
 {
   "functions": {
     "api/analyze.js": {
-      "maxDuration": 60
+      "maxDuration": 180
     },
     "api/study.js": {
-      "maxDuration": 60
+      "maxDuration": 180
     }
   }
 }

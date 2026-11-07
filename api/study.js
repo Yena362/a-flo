@@ -3,7 +3,7 @@
 import { STUDY_SYSTEM, SCHEMAS, buildStudyPrompt, MAX_SOURCES, MAX_SOURCES_TEXT } from '../js/study-prompt.js';
 import { callGemini, AIError, DEFAULT_MODEL, corsHeaders, preflight } from './_gemini.js';
 
-const OUTPUT_TOKENS = { ask: 2048, summary: 6144, quiz: 4096, cards: 4096, map: 4096 };
+const OUTPUT_TOKENS = { ask: 2048, summary: 8192, quiz: 4096, cards: 4096, map: 4096 };
 
 export function validate(body) {
   const mode = body?.mode;

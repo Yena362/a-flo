@@ -71,7 +71,7 @@ export const SCHEMA = {
   required: ['topicFit', 'logic', 'aiLikelihood', 'summary', 'instructionChecks', 'issues'],
 };
 
-export const MAX_TEXT = 150000; // 약 15만 자 (A4 100쪽 안팎). 한국어 기준 요청 크기 약 450KB
+export const MAX_TEXT = 250000; // 25만 자 = A4 100장(장당 1,800~2,000자)을 여유 있게. 한국어 기준 요청 크기 약 750KB (Vercel 한도 4.5MB)
 
 export function buildPrompt(input, ruleResult) {
   const tags = (input.tags || []).map(t => `- ${TAG_TEXT[t] || t}`).join('\n') || '- (선택 안 함)';

@@ -13,7 +13,7 @@ import { callGemini, AIError, DEFAULT_MODEL, corsHeaders, preflight } from './_g
 export { AIError, DEFAULT_MODEL };
 
 // 실제 채점 로직 (테스트·로컬 스크립트에서도 그대로 씀)
-export async function gradeWithGemini(input, { apiKey, model = DEFAULT_MODEL, fetchImpl = fetch, timeoutMs = 55000 } = {}) {
+export async function gradeWithGemini(input, { apiKey, model = DEFAULT_MODEL, fetchImpl = fetch, timeoutMs = 170000 } = {}) {
   if (!apiKey) throw new AIError('서버에 GEMINI_API_KEY가 설정되지 않았어요.', 500);
   const text = String(input?.text || '');
   if (text.trim().length < 20) throw new AIError('과제 내용이 너무 짧아요.', 400);

@@ -6,6 +6,7 @@ import { topbar, tabbar, icon, esc, toast, mascotTalk } from '../ui.js';
 import { mascot } from '../mascot.js';
 import { isPremium } from '../plan.js';
 import { readAssignmentFile } from '../docx.js';
+import { mountMindmap } from '../mindmap.js';
 import { study, loadNotebook, saveNotebook, sourcesKey, MAX_SOURCES, MAX_SOURCES_TEXT } from '../study.js';
 
 const TOOLS = {
@@ -121,9 +122,9 @@ function renderResult(tool, data, nb, session) {
     </section>`;
   }
   if (tool === 'map') {
-    return `<section class="card stack"><div class="map-root">${icon('hub')}${esc(data.root)}</div>
-      <ul class="map">${data.branches.map((b, bi) => `<li class="b${bi % 4}"><b>${esc(b.label)}</b>
-        ${b.children?.length ? `<ul>${b.children.map(c => `<li>${esc(c.label)}${c.children?.length ? `<ul>${c.children.map(g => `<li>${esc(g.label)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ul></section>`;
+    // 실제 그림은 mount에서 mountMindmap()이 그림 (누르면 펼쳐지는 마인드맵)
+    return `<section class="card stack mm-card"><div class="mm" id="mm"></div>
+      <p class="xs muted b" style="margin:0">${icon('touch_app')} ›가 있는 개념을 누르면 펼쳐지고, 다시 누르면 접혀요. 개념을 고르고 '자료로 설명 듣기'를 누르면 바로 질문돼요.</p></section>`;
   }
   return '';
 }
@@ -203,7 +204,12 @@ export default {
       rerender();
     }));
 
-    root.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => { session.nbTool = b.dataset.tool; session.nbError = null; rerender(); }));
+    root.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => {
+      const tool = b.dataset.tool;
+      session.nbTool = tool; session.nbError = null;
+      if (tool !== 'ask' && !nb().results?.[tool] && !session.nbBusy) run(tool); // 처음 누르면 바로 만들기
+      else rerender();
+    }));
 
     const run = async (tool, extra = {}) => {
       session.nbBusy = tool; session.nbError = null; rerender();
@@ -214,6 +220,7 @@ export default {
           persist({ results: { ...nb().results, [tool]: { key: sourcesKey(nb().sources), data, at: Date.now() } } });
           if (tool === 'quiz') session.nbQuiz = {};
           if (tool === 'cards') { session.nbCard = 0; session.nbFlip = false; }
+          if (tool === 'map') session.mm = {};
         }
       } catch (err) {
         session.nbError = err.message;
@@ -241,5 +248,19 @@ export default {
     root.querySelector('#flip')?.addEventListener('click', () => { session.nbFlip = !session.nbFlip; rerender(); });
     root.querySelector('#prev-card')?.addEventListener('click', () => { session.nbCard = Math.max(0, (session.nbCard || 0) - 1); session.nbFlip = false; rerender(); });
     root.querySelector('#next-card')?.addEventListener('click', () => { session.nbCard = (session.nbCard || 0) + 1; session.nbFlip = false; rerender(); });
+
+    // 마인드맵
+    const mmHost = root.querySelector('#mm');
+    const mapData = nb().results?.map?.data;
+    if (mmHost && mapData) {
+      session.mm = session.mm || {};
+      return mountMindmap(mmHost, mapData, session.mm, {
+        onAsk: (label, parent) => {
+          session.nbTool = 'ask';
+          ask(`'${label}'${parent ? `(${parent})` : ''}에 대해 올린 자료를 바탕으로 설명해 줘`);
+          window.scrollTo({ top: 0 });
+        },
+      });
+    }
   },
 };

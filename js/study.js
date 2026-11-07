@@ -3,7 +3,7 @@ import { MAX_SOURCES, MAX_SOURCES_TEXT } from './study-prompt.js';
 
 export { MAX_SOURCES, MAX_SOURCES_TEXT };
 
-export async function study(mode, { sources, question, history } = {}, { timeoutMs = 90000 } = {}) {
+export async function study(mode, { sources, question, history } = {}, { timeoutMs = 190000 } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {

@@ -3,7 +3,7 @@
 //   시험 대비 팩: summary(요약 노트) · quiz(예상 문제) · cards(암기 카드) · map(개념 지도)
 
 export const MAX_SOURCES = 10;
-export const MAX_SOURCES_TEXT = 300000; // 자료 전체 합계 글자 수
+export const MAX_SOURCES_TEXT = 600000; // 자료 전체 합계 글자 수 (A4 약 300장)
 
 export const STUDY_SYSTEM = `너는 한국 대학생의 시험 공부를 돕는 튜터야.
 

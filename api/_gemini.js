@@ -7,7 +7,7 @@ export class AIError extends Error {
 }
 
 // system: 지시문, prompt: 사용자 내용, schema: 답변 JSON 형식
-export async function callGemini({ system, prompt, schema, apiKey, model = DEFAULT_MODEL, fetchImpl = fetch, timeoutMs = 55000, maxOutputTokens = 4096 }) {
+export async function callGemini({ system, prompt, schema, apiKey, model = DEFAULT_MODEL, fetchImpl = fetch, timeoutMs = 170000, maxOutputTokens = 4096 }) {
   if (!apiKey) throw new AIError('서버에 GEMINI_API_KEY가 설정되지 않았어요.', 500);
   const body = {
     systemInstruction: { parts: [{ text: system }] },

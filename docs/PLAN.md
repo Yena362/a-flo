@@ -11,7 +11,8 @@
 
 - 설정 위치: `js/plan.js` (`FREE_DAILY_FILES`, 가격 표시 `PRICE_LABEL`, 결제 연동 여부 `PAYMENT_READY`)
 - 프리미엄 화면: `#/premium`, 자료 노트북: `#/notebook`
-- 서버: `api/study.js` (Gemini, 자료 최대 10개 · 합계 30만 자)
+- 서버: `api/study.js` (Gemini, 자료 최대 10개 · 합계 60만 자 ≈ A4 300장)
+- 과제 검사: 파일 100MB · 25만 자(A4 100장 이상)까지 AI 채점
 
 > 기능 이름은 우리 서비스 고유 이름(자료 노트북, 시험 대비 팩)으로 지었어요. 비슷한 서비스(NotebookLM, 유니브AI)의 이름은 다른 회사 상표라 앱 안에서 쓰지 않는 게 안전해요.
 
