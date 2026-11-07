@@ -10,7 +10,15 @@ const DEFAULT = {
   quizToday: {}, // { 'YYYY-MM-DD:assignment': { done: true, correct: true, offset: 0 } }
   history: [], // [{ date, title, score, grade }]
   draft: null, // 마지막 검사 입력
+  updatedAt: 0, // 마지막으로 바뀐 시각(ms) — 클라우드와 합칠 때 어느 쪽이 최신인지 가리는 용도
 };
+
+// 값이 바뀔 때 알려 달라고 등록하는 곳 (cloud.js가 클라우드 백업에 사용)
+const listeners = new Set();
+export function subscribe(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
 
 let state = load();
 
@@ -29,7 +37,17 @@ function save() {
 export function get() { return state; }
 
 export function set(patch) {
-  state = { ...state, ...patch };
+  state = { ...state, ...patch, updatedAt: Date.now() };
+  save();
+  for (const fn of listeners) {
+    try { fn(state); } catch { /* 한 구독자의 오류가 저장을 막지 않게 */ }
+  }
+  return state;
+}
+
+// 클라우드에서 받은 값으로 통째로 바꾸기 (구독자에게 알리지 않아 다시 올리는 반복을 막아요)
+export function replace(next) {
+  state = { ...DEFAULT, ...next };
   save();
   return state;
 }
