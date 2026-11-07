@@ -121,6 +121,10 @@ export default {
     const slot = root.querySelector('#file-slot');
     const KIND = { hwp: '한글', hwpx: '한글', pdf: 'PDF', docx: '워드', txt: '텍스트', md: '텍스트' };
     let loaded = { fileName: store.get().draft?.fileName || '', fileKind: store.get().draft?.fileKind || '' };
+    // 과제 이름: 자동으로 채운 이름은 새 파일을 올리면 따라 바뀌고, 직접 입력한 이름은 그대로 둠
+    const t0 = form.title.value.trim();
+    form.title.dataset.auto = !t0 || /\(예시\)$/.test(t0) || (loaded.fileName && t0 === loaded.fileName.replace(/\.[^.]+$/, '')) ? '1' : '0';
+    form.title.addEventListener('input', () => { form.title.dataset.auto = form.title.value.trim() ? '0' : '1'; });
     const showFile = (name, chars, kind = '') => {
       loaded = { fileName: name, fileKind: kind };
       slot.innerHTML = fileCard(name, chars, kind);
@@ -133,7 +137,7 @@ export default {
       if (act === 'delete-file') {
         backup = { text: text.value, title: form.title.value, ...loaded, chars: text.value.replace(/\s+/g, ' ').trim().length };
         text.value = '';
-        if (backup.fileName && form.title.value === backup.fileName.replace(/\.[^.]+$/, '')) form.title.value = '';
+        if (form.title.dataset.auto === '1') form.title.value = '';
         loaded = { fileName: '', fileKind: '' };
         const d = store.get().draft;
         if (d) store.set({ draft: { ...d, text: '', fileName: '', fileKind: '', title: form.title.value } });
@@ -166,7 +170,7 @@ export default {
         const body = (await readAssignmentFile(file)).trim();
         if (body.replace(/\s/g, '').length < 20) throw new Error('파일에서 읽을 수 있는 글자가 거의 없어요. 내용을 붙여 넣어 주세요.');
         text.value = body;
-        if (!form.title.value) form.title.value = file.name.replace(/\.[^.]+$/, '');
+        if (!form.title.value.trim() || form.title.dataset.auto === '1') { form.title.value = file.name.replace(/\.[^.]+$/, ''); form.title.dataset.auto = '1'; }
         showFile(file.name, body.replace(/\s+/g, ' ').length, KIND[ext]);
         const det = form.querySelector('details.paste');
         if (det) det.open = false;
@@ -185,6 +189,7 @@ export default {
 
     form.querySelector('#sample').addEventListener('click', () => {
       form.title.value = '거시경제학 기말 리포트 (예시)';
+      form.title.dataset.auto = '1';
       form.instructions.value = SAMPLE.instructions;
       text.value = SAMPLE.text;
       form.querySelectorAll('.tag').forEach(b => b.setAttribute('aria-pressed', SAMPLE.tags.includes(b.dataset.tag)));
