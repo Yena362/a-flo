@@ -485,3 +485,36 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); display: inline-block; animation: pulse 1s infinite; }
 .rec-live { max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; background: #fff; border-radius: 12px; padding: 10px 12px; }
 @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
+
+/* 교정 에디터: 수정 기록 */
+.edit-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.edit-log li { padding: 10px 12px; border-radius: 12px; background: #F7F9FC; }
+.diff { margin-top: 4px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.diff del { color: var(--red-ink); background: #FFECEC; text-decoration: line-through; padding: 0 2px; border-radius: 4px; }
+.diff ins { color: var(--green-dark); background: #EAFBE0; text-decoration: none; padding: 0 2px; border-radius: 4px; margin-left: 6px; }
+.diff ins::before { content: '→ '; color: var(--muted); }
+
+/* 점수 진단: 수정 포인트 전체 */
+.iss-group { border-top: 2px solid var(--line); padding-top: 10px; }
+.iss-group summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; list-style: none; min-height: 40px; }
+.iss-group summary::-webkit-details-marker { display: none; }
+.iss-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.iss-list li { display: flex; gap: 10px; align-items: flex-start; overflow-wrap: anywhere; }
+.iss-list .dot { margin-top: 7px; flex: none; }
+.iss-list .plus { flex: none; }
+.print-only { display: none; }
+
+/* 검사 리포트 인쇄(PDF 저장) */
+@media print {
+  @page { margin: 14mm; }
+  body { background: #fff !important; }
+  .topbar, .tabbar, .no-print, .view-result a.btn, .hero-avatar, .toast { display: none !important; }
+  .print-only { display: block !important; }
+  .print-head { display: flex !important; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 10px; font-size: 13px; }
+  .card, .hero .bubble { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+  .iss-list li { break-inside: avoid; }
+  .view { padding-bottom: 0 !important; }
+}
+.recent { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px; }
+.recent .grow { min-width: 0; }
+.snip { font-size: 13px; font-weight: 700; background: #FFF4D6; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
