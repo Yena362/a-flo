@@ -235,9 +235,9 @@ details.paste summary { cursor: pointer; font-weight: 800; padding: 6px 0; }
 .line.has-warning { background: #FFF6E9; border: 2px solid #FFDDB3; }
 .line.has-danger { background: #DDEBFF; border: 2px solid #9DBDF0; }
 .line.empty { padding: 2px; }
-.note { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 800; }
+.note { display: flex; align-items: center; gap: 6px; line-height: 1.4; margin-top: 6px; font-size: 13px; font-weight: 800; }
 .note.warning { color: #8C5000; } .note.danger { color: var(--red-ink); }
-.note .fixit { margin-left: auto; background: var(--red-rim); color: #fff; border-radius: 8px; padding: 2px 8px; font-size: 12px; border: 0; cursor: pointer; font-weight: 900; }
+.note .fixit { margin-left: auto; flex-shrink: 0; white-space: nowrap; min-height: 32px; background: var(--red-rim); color: #fff; border-radius: 8px; padding: 2px 8px; font-size: 12px; border: 0; cursor: pointer; font-weight: 900; }
 mark.hl { color: inherit; padding: 1px 0; cursor: pointer; border-radius: 4px; background: none; }
 mark.hl.warning { text-decoration: underline wavy #F08A00 2px; text-underline-offset: 4px; background: #FFE9C7; }
 mark.hl.danger { background: #FFC9CF; color: #A1121E; font-weight: 800; }
