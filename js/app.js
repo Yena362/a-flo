@@ -53,7 +53,8 @@ function render({ keepScroll = false } = {}) {
   root.innerHTML = view.render(ctx);
   cleanup = view.mount ? view.mount(root, ctx) || null : null;
   window.scrollTo(0, keepScroll ? y : 0);
-  const h = root.querySelector('h1, h2');
+  const h = root.querySelector('h1, h2')?.cloneNode(true);
+  h?.querySelectorAll('.ms').forEach(n => n.remove()); // 아이콘 글자는 제목에서 빼기
   document.title = h ? `${h.textContent.trim()} · 에이플로` : '에이플로';
 }
 

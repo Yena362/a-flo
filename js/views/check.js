@@ -36,7 +36,7 @@ function panel(session, s) {
         <div><span class="sm muted b">고치면 오르는 점수</span><div class="h2 t-green">+${r.potential.gain}점 · ${r.potential.grade} 가능</div></div>
         <span class="chip green">${icon('workspace_premium', 'fill')}지금 ${r.grade}</span>
       </div>
-      <a class="btn green big" href="#/result">${r.grade} 방어 정밀 리포트 확인하기 ✨</a>
+      <a class="btn green big" href="#/result">예상 ${r.grade} · 정밀 리포트 확인하기 ✨</a>
       <div class="chip orange" style="justify-content:center">${icon('local_fire_department', 'fill')}검사 완료 보너스! 경험치 +${REPORT_XP} XP 지급</div>` : ''}
   </section>`;
 }
