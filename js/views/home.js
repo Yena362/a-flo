@@ -77,8 +77,8 @@ export default {
     <section class="card quiz stack" style="gap:16px">
       <div class="row wrap">
         <span class="chip blue">${icon(src.mine ? 'menu_book' : 'timer')}오늘의 1분 퀴즈 · ${src.topic}</span>
-        <span class="chip blue">${icon('diamond', 'fill')}+${REWARD.gems} 보상</span>
-        ${st.offset ? `<span class="chip">추가 문제 ${st.offset}</span>` : ''}
+        ${s.rewarded?.[REWARD_KEY()] ? `<span class="chip green">${icon('check_circle', 'fill')}오늘 보상 받음</span>` : `<span class="chip blue">${icon('diamond', 'fill')}+${REWARD.gems} 보상</span>`}
+        ${st.offset ? `<span class="chip">오늘 ${st.offset + 1}번째 문제</span>` : ''}
       </div>
       ${fromName ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('description')}출처: ${esc(fromName)}</p>` : ''}
       ${session.homeQuizBusy ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('progress_activity', 'spin')}올린 강의자료로 예상 문제를 만드는 중이에요. 다 되면 여기로 바뀌어요.</p>` : ''}
@@ -96,8 +96,8 @@ export default {
       </div>
       ${done
         ? `<div class="explain ${correct ? 'safe' : 'danger'}"><b>${correct ? '정답이에요! 감점 방어 완료' : `아깝다! 정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p></div>
-           ${correct ? '' : '<button class="btn orange big" id="next">' + icon('refresh') + '다른 문제 도전</button>'}`
-        : `<button class="btn dkgreen big" id="submit" ${selected == null ? 'disabled' : ''}>${icon('verified', 'fill')}정답 확인하고 +${REWARD.gems}💎 받기</button>`}
+           <button class="btn ${correct ? 'green' : 'orange'} big" id="next">${icon(correct ? 'arrow_forward' : 'refresh')}${correct ? '다음 문제 풀기' : '새로운 문제 풀기'}</button>`
+        : `<button class="btn dkgreen big" id="submit" ${selected == null ? 'disabled' : ''}>${icon('verified', 'fill')}${s.rewarded?.[REWARD_KEY()] ? '정답 확인하기' : `정답 확인하고 +${REWARD.gems}💎 받기`}</button>`}
     </section>
 
     <section class="card tint stack">
