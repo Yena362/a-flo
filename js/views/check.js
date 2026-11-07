@@ -1,6 +1,6 @@
 // STEP 1 & 3. 과제 & 교수 맞춤 정보 입력 + 실시간 분석 진행 (한 화면)
 import { topbar, tabbar, icon, esc, mascotTalk, toast } from '../ui.js';
-import { mascot } from '../mascot.js';
+import { mascot, CHARACTERS } from '../mascot.js';
 import { TAGS } from '../analyzer.js';
 import { analyzeWithAI } from '../ai.js';
 import { readAssignmentFile } from '../docx.js';
@@ -17,11 +17,12 @@ function panel(session, s) {
   if (!phase) return '';
   const r = session.result;
   const done = phase === 'done';
+  const who = CHARACTERS[s.mascot]?.name || '코치';
   return `<section class="card tint scan" id="scan" aria-live="polite">
     <div class="row">
       <div class="hero-avatar sm">${mascot(s.mascot, done ? (r.mood === 'danger' ? 'danger' : 'cheer') : 'analyzing', 70, done ? '' : 'bob')}</div>
       <div class="grow">
-        <h2 class="h3">${done ? '삐약이 정밀 분석 완료!' : '삐약이가 정밀 분석 중!'}</h2>
+        <h2 class="h3">${done ? `${who} 정밀 분석 완료!` : `${who}가 정밀 분석 중!`}</h2>
         <p class="sm muted b" style="margin:0">교수님 평가 기준과 대조 스캔</p>
       </div>
       <b class="h2" id="pct">${done ? 100 : 0}%</b>
@@ -89,7 +90,7 @@ export default {
         <div class="between sm"><button type="button" class="link" id="sample">예시 과제 불러오기</button><span class="muted b" id="count">0자</span></div>
       </section>
 
-      <button class="btn green big" id="submit" type="submit" ${running ? 'disabled' : ''}>${icon('search')}${running ? '분석 중…' : '분석 시작'}</button>
+      <div class="sticky-cta"><button class="btn green big" id="submit" type="submit" ${running ? 'disabled' : ''}>${icon('search')}${running ? '분석 중…' : '분석 시작'}</button></div>
     </form>
 
     ${panel(session, s)}
