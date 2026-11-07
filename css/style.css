@@ -436,7 +436,8 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .mm-tools { display: flex; align-items: center; gap: 6px; }
 .mm-tools .btn.sm .ms { font-size: 18px; }
 .mm-tools .btn.sm { min-height: 38px; font-size: 13px; padding: 0 10px; gap: 2px; }
-.mm-tools .icon-btn { width: 38px; min-height: 38px; }
+.mm-tools .btn { flex: none; width: auto; }
+.mm-tools .icon-btn { width: 38px; min-height: 38px; padding: 0; }
 .mm-wrap { position: relative; overflow: auto; border-radius: 18px; background: #F7F9FD; border: 2px solid #E6ECF5; min-height: 260px; max-height: 70vh; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   background-image: radial-gradient(#DCE3EF 1px, transparent 1px); background-size: 18px 18px; }
 .mm-sizer { position: relative; }
@@ -470,3 +471,10 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .mm-ask[hidden] { display: none; }
 .mm-ask .btn { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) { .mm-node, .mm-lines path, .mm-node .mm-toggle .ms { transition: none; } }
+
+@media (max-width: 420px) {
+  .mm-tools { flex-wrap: nowrap; }
+  .mm-tools .btn.sm { padding: 0 8px; min-width: 38px; }
+  .mm-tools .mm-txt { font-size: 12px; }
+}
+@media (max-width: 340px) { .mm-tools .mm-txt { display: none; } }

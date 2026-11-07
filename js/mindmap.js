@@ -34,8 +34,8 @@ export function mountMindmap(host, data, state, { onAsk } = {}) {
 
   host.innerHTML = `
     <div class="mm-tools" role="toolbar" aria-label="마인드맵 도구">
-      <button type="button" class="btn sm" data-mm="expand" aria-label="모두 펼치기"><span class="ms" aria-hidden="true">unfold_more</span>펼치기</button>
-      <button type="button" class="btn sm" data-mm="collapse" aria-label="모두 접기"><span class="ms" aria-hidden="true">unfold_less</span>접기</button>
+      <button type="button" class="btn sm" data-mm="expand" aria-label="모두 펼치기"><span class="ms" aria-hidden="true">unfold_more</span><span class="mm-txt">펼치기</span></button>
+      <button type="button" class="btn sm" data-mm="collapse" aria-label="모두 접기"><span class="ms" aria-hidden="true">unfold_less</span><span class="mm-txt">접기</span></button>
       <span class="grow"></span>
       <button type="button" class="btn sm icon-btn" data-mm="out" aria-label="축소"><span class="ms" aria-hidden="true">remove</span></button>
       <button type="button" class="btn sm icon-btn" data-mm="in" aria-label="확대"><span class="ms" aria-hidden="true">add</span></button>
