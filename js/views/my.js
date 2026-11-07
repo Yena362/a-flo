@@ -1,31 +1,43 @@
-// 마이: 마스코트 선택(4종), 기록, 데이터 초기화
-import { topbar, tabbar, esc, flame, toast } from '../ui.js';
-import { mascot, CHARACTERS, levelOf } from '../mascot.js';
+// 마이: 레벨·경험치, 내 코치(캐릭터 4종) 고르기, 검사 기록, 초기화
+import { topbar, tabbar, icon, esc, toast, player } from '../ui.js';
+import { mascot, CHARACTERS } from '../mascot.js';
 
 export default {
   render({ store }) {
-    const s = store.get();
-    const lvl = levelOf(store.currentStreak());
-    return `${topbar('마이')}
+    const { s, lv, stage, stageName, name } = player();
+    const into = s.xp % 100;
+    return `${topbar()}
+    <section class="card tint stack">
+      <div class="row">
+        <div class="hero-avatar">${mascot(s.mascot, `lv${stage}`, 96, 'bob')}<span class="lv-badge">${icon('school', 'fill')}Lv.${lv}</span></div>
+        <div class="grow"><h1 class="h2">${esc(stageName)} ${esc(name)}</h1><p class="sm muted b" style="margin:2px 0 0">다음 레벨까지 ${100 - into} XP</p></div>
+      </div>
+      <div class="progress" role="progressbar" aria-label="레벨 경험치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${into}"><div class="bar" style="width:${into}%"></div></div>
+      <p class="xs muted b" style="margin:0">퀴즈 정답 +30 XP · 과제 검사 완료 +30 XP · 3일 이상 연속이면 +20 XP 보너스. Lv.3에 열공, Lv.6에 마스터로 성장해요.</p>
+    </section>
+
+    <section class="grid-3">
+      <div class="tile">${icon('local_fire_department', 'fill t-orange')}최고 연속<b>${s.best}일</b></div>
+      <div class="tile">${icon('diamond', 'fill t-blue')}다이아<b>${s.gems.toLocaleString()}</b></div>
+      <div class="tile">${icon('analytics', 'fill t-green')}진단<b>${s.history.length}건</b></div>
+    </section>
+
     <section class="card stack">
-      <h2 class="h3">내 코치 고르기</h2>
-      <div class="grid-2 pick" role="radiogroup" aria-label="마스코트">
-        ${Object.entries(CHARACTERS).map(([k, c]) => `<button class="pick-card ${s.mascot === k ? 'on' : ''}" role="radio" aria-checked="${s.mascot === k}" data-m="${k}">
-          ${mascot(k, `lv${lvl}`, 88)}<b>${esc(c.name)}</b><span class="small muted">${esc(c.desc)}</span></button>`).join('')}
+      <h2 class="card-title">${icon('pets')}내 코치 고르기</h2>
+      <div class="two" role="radiogroup" aria-label="마스코트">
+        ${Object.entries(CHARACTERS).map(([k, c]) => `<button class="tag" style="height:auto;padding:14px 8px;border-radius:20px;display:flex;flex-direction:column;align-items:center;gap:4px" role="radio" aria-checked="${s.mascot === k}" aria-pressed="${s.mascot === k}" data-m="${k}">
+          ${mascot(k, `lv${stage}`, 84)}<b>${esc(c.name)}</b><span class="xs muted">${esc(c.desc)}</span></button>`).join('')}
       </div>
     </section>
-    <section class="grid-3">
-      <div class="card stat"><span class="small muted">최고 연속</span><b>${flame(16)} ${s.best}일</b></div>
-      <div class="card stat"><span class="small muted">정밀 검사권</span><b>${s.credits}개</b></div>
-      <div class="card stat"><span class="small muted">검사한 과제</span><b>${s.history.length}건</b></div>
-    </section>
+
     <section class="card stack">
-      <h2 class="h3">검사 기록</h2>
-      ${s.history.length ? `<ul class="list">${s.history.map(h => `<li><span>${esc(h.title || '제목 없는 과제')}<span class="small muted"> · ${esc(h.date)}</span></span><span><span class="small muted">${h.score}점</span> <b class="grade-chip">${esc(h.grade)}</b></span></li>`).join('')}</ul>` : '<p class="muted small">아직 기록이 없어요.</p>'}
+      <h2 class="card-title">${icon('history')}검사 기록</h2>
+      ${s.history.length ? `<ul class="checklist">${s.history.map(h => `<li class="auto">${icon('description', 'fill')}<div class="grow between"><span><b>${esc(h.title || '제목 없는 과제')}</b><br><span class="xs muted b">${esc(h.date)} · ${h.score}점</span></span><span class="chip green">${esc(h.grade)}</span></div></li>`).join('')}</ul>` : '<p class="muted b" style="margin:0">아직 기록이 없어요.</p>'}
     </section>
-    <button class="btn danger-outline" id="reset">모든 기록 초기화</button>
-    <p class="small muted center">입력한 과제와 기록은 이 브라우저에만 저장돼요.</p>
-    ${tabbar('my')}`;
+
+    <button class="btn red" id="reset">${icon('delete')}모든 기록 초기화</button>
+    <p class="xs muted b center" style="margin:0">입력한 과제와 기록은 이 브라우저에만 저장돼요.</p>
+    ${tabbar('')}`;
   },
 
   mount(root, { store, session, rerender }) {
@@ -35,9 +47,9 @@ export default {
       rerender();
     }));
     root.querySelector('#reset').addEventListener('click', () => {
-      if (!window.confirm('연속 학습, 크레딧, 검사 기록이 모두 지워져요. 계속할까요?')) return;
+      if (!window.confirm('연속 학습, 다이아, 경험치, 검사 기록이 모두 지워져요. 계속할까요?')) return;
       localStorage.removeItem('aflo:v1');
-      session.input = null; session.result = null;
+      Object.assign(session, { input: null, result: null, ai: null, baseScore: null });
       location.hash = '#/home';
       location.reload();
     });

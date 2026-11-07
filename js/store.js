@@ -7,6 +7,9 @@ const DEFAULT = {
   best: 0,
   lastSolved: null, // 'YYYY-MM-DD'
   credits: 3,
+  gems: 0, // 💎 퀴즈 보상 재화
+  xp: 0, // 경험치 → 레벨
+  rewarded: {}, // { 'YYYY-MM-DD:assignment': true } 오늘 보상 받은 퀴즈
   quizToday: {}, // { 'YYYY-MM-DD:assignment': { done: true, correct: true, offset: 0 } }
   history: [], // [{ date, title, score, grade }]
   draft: null, // 마지막 검사 입력
@@ -65,6 +68,16 @@ export function recordCorrect() {
   const streak = state.lastSolved === yesterday() ? state.streak + 1 : 1;
   set({ streak, best: Math.max(state.best, streak), lastSolved: today(), credits: state.credits + 1 });
   return { streak, firstToday: true };
+}
+
+// 💎·XP 지급
+export function addReward({ gems = 0, xp = 0 }) {
+  set({ gems: state.gems + gems, xp: state.xp + xp });
+}
+
+// 레벨: 경험치 100마다 1씩
+export function level() {
+  return 1 + Math.floor(state.xp / 100);
 }
 
 export function addHistory(entry) {

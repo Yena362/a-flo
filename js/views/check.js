@@ -1,87 +1,128 @@
-// STEP 1. 과제 & 교수님 맞춤 정보 입력: 성향 태그, 구두 지시사항(텍스트·음성), 파일 업로드
-import { topbar, tabbar, esc, toast } from '../ui.js';
+// STEP 1 & 3. 과제 & 교수 맞춤 정보 입력 + 실시간 분석 진행 (한 화면)
+import { topbar, tabbar, icon, esc, mascotTalk, toast } from '../ui.js';
+import { mascot } from '../mascot.js';
 import { TAGS } from '../analyzer.js';
+import { analyzeWithAI } from '../ai.js';
 import { readAssignmentFile } from '../docx.js';
 import { SAMPLE } from '../sample.js';
 
 const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+const EMOJI = { strict: '🔍', logic: '💡', cite: '📚', structure: '📝', length: '⏱️' };
+const STEPS = ['교수님 지시사항 분석', '표절 및 문단 대조', '감점 요소 추출', 'AI 내용·논리 평가'];
+const MIN_MS = 3600;
+const REPORT_XP = 30;
+
+function panel(session, s) {
+  const phase = session.phase;
+  if (!phase) return '';
+  const r = session.result;
+  const done = phase === 'done';
+  return `<section class="card tint scan" id="scan" aria-live="polite">
+    <div class="row">
+      <div class="hero-avatar sm">${mascot(s.mascot, done ? (r.mood === 'danger' ? 'danger' : 'cheer') : 'analyzing', 70, done ? '' : 'bob')}</div>
+      <div class="grow">
+        <h2 class="h3">${done ? '삐약이 정밀 분석 완료!' : '삐약이가 정밀 분석 중!'}</h2>
+        <p class="sm muted b" style="margin:0">교수님 평가 기준과 대조 스캔</p>
+      </div>
+      <b class="h2" id="pct">${done ? 100 : 0}%</b>
+    </div>
+    <div class="progress" role="progressbar" aria-label="분석 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${done ? 100 : 0}"><div class="bar" id="bar" style="width:${done ? 100 : 0}%"></div></div>
+    <ol class="steps" id="steps">
+      ${STEPS.map((t, i) => `<li class="${done ? 'done' : i === 0 ? 'run' : 'wait'}">${icon(done ? 'check_circle' : i === 0 ? 'sync' : 'hourglass_top', 'fill')}<span>${t}</span><span class="st">${done ? '완료' : i === 0 ? '진행 중' : '대기'}</span></li>`).join('')}
+    </ol>
+    ${done ? `
+      ${session.aiError ? `<p class="sm muted b" style="margin:0">${icon('info')} AI 채점 없이 기본 채점만 했어요 (${esc(session.aiError)})</p>` : ''}
+      <div class="payoff">
+        <div><span class="sm muted b">고치면 오르는 점수</span><div class="h2 t-green">+${r.potential.gain}점 · ${r.potential.grade} 가능</div></div>
+        <span class="chip green">${icon('workspace_premium', 'fill')}지금 ${r.grade}</span>
+      </div>
+      <a class="btn green big" href="#/result">${r.grade} 방어 정밀 리포트 확인하기 ✨</a>
+      <div class="chip orange" style="justify-content:center">${icon('local_fire_department', 'fill')}검사 완료 보너스! 경험치 +${REPORT_XP} XP 지급</div>` : ''}
+  </section>`;
+}
 
 export default {
-  render({ store }) {
-    const d = store.get().draft || {};
+  render({ store, session }) {
+    const s = store.get();
+    const d = s.draft || {};
     const tags = new Set(d.tags || []);
-    return `${topbar('과제 검사')}
-    <form class="stack" id="check-form" novalidate>
-      <section class="card stack">
-        <label class="field"><span class="label">과제 이름</span>
-          <input name="title" type="text" placeholder="예: 거시경제학 기말 리포트" value="${esc(d.title || '')}"></label>
-      </section>
+    const running = session.phase === 'running';
+    return `${topbar()}
+    <div class="row wrap"><span class="chip ink">STEP 1 &amp; 3</span><span class="chip green">과제 &amp; 교수 맞춤 분석</span><span class="chip blue">${icon('auto_awesome')}AI 실시간 진단</span></div>
+    ${mascotTalk({ mood: 'quiz', small: true, html: '"어떤 교수님 수업이야? 스타일을 알려주면 감점 요소를 꼼꼼하게 걸러낼게!"<p class="sm muted" style="margin:6px 0 0">과제 파일과 교수님 취향을 입력하면 AI가 분석해요.</p>' })}
 
+    <form class="stack" id="form" novalidate style="gap:18px">
       <section class="card stack">
-        <h2 class="h3">교수님 스타일 <span class="muted small">해당하는 것을 모두 골라 주세요</span></h2>
-        <div class="chips" role="group" aria-label="교수님 성향">
-          ${TAGS.map(t => `<button type="button" class="chip ${tags.has(t.id) ? 'on' : ''}" data-tag="${t.id}" aria-pressed="${tags.has(t.id)}">${esc(t.label)}</button>`).join('')}
+        <div class="between"><h2 class="card-title">${icon('psychology')}교수님 평가 성향 선택</h2><span class="chip blue xs">다중 선택 가능</span></div>
+        <div class="tags" role="group" aria-label="교수님 성향">
+          ${TAGS.map(t => `<button type="button" class="tag" data-tag="${t.id}" aria-pressed="${tags.has(t.id)}">${EMOJI[t.id] || ''} ${esc(t.label)}</button>`).join('')}
         </div>
       </section>
 
       <section class="card stack">
-        <div class="row-between">
-          <label class="h3" for="instructions">수업 때 하신 말씀</label>
-          <button type="button" class="btn-icon" id="mic" aria-label="음성으로 입력" ${SR ? '' : 'disabled title="이 브라우저는 음성 입력을 지원하지 않아요 (Chrome 권장)"'}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
-          </button>
-        </div>
+        <div class="between"><h2 class="card-title">${icon('record_voice_over')}강의실 구두 지시 &amp; 꿀팁</h2><span class="chip green xs">AI 특별 감지</span></div>
+        <label class="sr" for="instructions">수업 때 하신 말씀</label>
         <textarea id="instructions" name="instructions" rows="3" placeholder="예: 참고문헌 APA 필수, 서론에 뉴스 기사 인용할 것, 2,000자 이상">${esc(d.instructions || '')}</textarea>
-        <p class="small muted" id="mic-status" aria-live="polite">${SR ? '마이크를 눌러 짧게 말하면 자동으로 적어 드려요.' : ''}</p>
-        <label class="field inline"><span class="label">요구 분량</span>
-          <input name="targetLength" type="number" min="0" step="100" inputmode="numeric" placeholder="자동" value="${d.targetLength || ''}"><span class="small muted">자 (비우면 말씀에서 찾아요)</span></label>
+        <button type="button" class="voice" id="mic" ${SR ? '' : 'disabled'}>
+          <span class="mic">${icon('mic', 'fill')}</span>
+          <span><b>🎙️ 음성 메모로 말하기</b><br><span class="sm muted" id="mic-status">${SR ? '탭하여 녹음 · 다시 누르면 멈춰요' : '이 브라우저는 음성 입력을 지원하지 않아요 (Chrome 권장)'}</span></span>
+        </button>
+        <div class="two">
+          <label class="lbl">요구 분량 (자)<input name="targetLength" type="number" min="0" step="100" inputmode="numeric" placeholder="자동" value="${d.targetLength || ''}"></label>
+          <label class="lbl">제출 마감일<input name="dueDate" type="date" value="${esc(d.dueDate || '')}"></label>
+        </div>
       </section>
 
       <section class="card stack">
-        <h2 class="h3">과제 파일</h2>
+        <div class="between"><h2 class="card-title">${icon('folder_zip')}과제 원문 파일 업로드</h2><span class="chip xs">DOCX · TXT</span></div>
+        <label class="lbl">과제 이름<input name="title" type="text" placeholder="예: 경영전략론 중간보고서" value="${esc(d.title || '')}"></label>
+        <div id="file-slot">${d.text ? `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b>${esc(d.title || '불러온 과제')}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${d.text.replace(/\s+/g, ' ').trim().length.toLocaleString()}자 · 불러오기 완료</div></div></div>` : ''}</div>
         <label class="drop" id="drop">
           <input type="file" id="file" accept=".docx,.txt,.md,.pdf,.hwp,.hwpx" class="sr">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15V5m0 0l-4 4m4-4l4 4M5 19h14"/></svg>
-          <span><b>파일을 끌어다 놓거나 눌러서 선택</b><span class="small muted">DOCX · TXT (PDF·HWP는 준비 중)</span></span>
+          ${icon('cloud_upload')}
+          <span><b>파일을 끌어다 놓거나 눌러서 선택</b><br><span class="sm muted">PDF·HWP는 준비 중이에요. 내용을 붙여 넣어 주세요.</span></span>
         </label>
-        <label class="label" for="text">또는 내용 붙여 넣기</label>
-        <textarea id="text" name="text" rows="8" placeholder="과제 본문과 참고문헌을 붙여 넣으세요.">${esc(d.text || '')}</textarea>
-        <div class="row-between small"><button type="button" class="link" id="sample">예시 과제 불러오기</button><span class="muted" id="count">0자</span></div>
+        <details class="paste" ${d.text ? '' : 'open'}>
+          <summary>본문 직접 붙여 넣기 / 확인</summary>
+          <textarea id="text" name="text" rows="8" placeholder="과제 본문과 참고문헌을 붙여 넣으세요.">${esc(d.text || '')}</textarea>
+        </details>
+        <div class="between sm"><button type="button" class="link" id="sample">예시 과제 불러오기</button><span class="muted b" id="count">0자</span></div>
       </section>
 
-      <button class="btn primary big" id="submit" type="submit">분석 시작</button>
+      <button class="btn green big" id="submit" type="submit" ${running ? 'disabled' : ''}>${icon('search')}${running ? '분석 중…' : '분석 시작'}</button>
     </form>
+
+    ${panel(session, s)}
     ${tabbar('check')}`;
   },
 
-  mount(root, { store, session, go }) {
-    const form = root.querySelector('#check-form');
+  mount(root, { store, session, rerender }) {
+    const form = root.querySelector('#form');
     const text = form.querySelector('#text');
     const count = form.querySelector('#count');
     const submit = form.querySelector('#submit');
     const update = () => {
       count.textContent = `${text.value.replace(/\s+/g, ' ').trim().length.toLocaleString()}자`;
-      submit.disabled = text.value.trim().length < 20;
+      if (session.phase !== 'running') submit.disabled = text.value.trim().length < 20;
     };
     text.addEventListener('input', update);
     update();
 
-    form.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
-      const on = !c.classList.contains('on');
-      c.classList.toggle('on', on);
-      c.setAttribute('aria-pressed', on);
+    form.querySelectorAll('.tag').forEach(b => b.addEventListener('click', () => {
+      b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
     }));
 
+    const showFile = (name, chars) => {
+      root.querySelector('#file-slot').innerHTML = `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b>${esc(name)}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${chars.toLocaleString()}자 · 업로드 완료</div></div></div>`;
+    };
     const loadFile = async file => {
       if (!file) return;
       try {
         text.value = await readAssignmentFile(file);
         if (!form.title.value) form.title.value = file.name.replace(/\.[^.]+$/, '');
+        showFile(file.name, text.value.replace(/\s+/g, ' ').trim().length);
         update();
-        toast(`${file.name} 불러오기 완료`);
-      } catch (e) {
-        toast(e.message);
-      }
+      } catch (e) { toast(e.message); }
     };
     const drop = form.querySelector('#drop');
     form.querySelector('#file').addEventListener('change', e => loadFile(e.target.files[0]));
@@ -93,15 +134,12 @@ export default {
       form.title.value = '거시경제학 기말 리포트 (예시)';
       form.instructions.value = SAMPLE.instructions;
       text.value = SAMPLE.text;
-      form.querySelectorAll('.chip').forEach(c => {
-        const on = SAMPLE.tags.includes(c.dataset.tag);
-        c.classList.toggle('on', on);
-        c.setAttribute('aria-pressed', on);
-      });
+      form.querySelectorAll('.tag').forEach(b => b.setAttribute('aria-pressed', SAMPLE.tags.includes(b.dataset.tag)));
+      showFile('예시 과제.txt', SAMPLE.text.replace(/\s+/g, ' ').trim().length);
       update();
     });
 
-    // 음성 입력 (Web Speech API)
+    // 음성 입력
     let rec = null;
     const mic = form.querySelector('#mic');
     const status = form.querySelector('#mic-status');
@@ -109,14 +147,13 @@ export default {
       if (rec) { rec.stop(); return; }
       rec = new SR();
       rec.lang = 'ko-KR';
-      rec.interimResults = false;
       rec.onresult = e => {
         const said = Array.from(e.results).map(r => r[0].transcript).join(' ');
         const ta = form.instructions;
         ta.value = (ta.value.trim() ? `${ta.value.trim()}, ` : '') + said;
       };
       rec.onerror = e => { status.textContent = `음성 인식 오류: ${e.error}`; };
-      rec.onend = () => { rec = null; mic.classList.remove('rec'); status.textContent = '받아 적기 완료. 내용을 확인해 주세요.'; };
+      rec.onend = () => { rec = null; mic.classList.remove('rec'); status.textContent = '받아 적기 완료! 내용을 확인해 주세요.'; };
       rec.start();
       mic.classList.add('rec');
       status.textContent = '듣고 있어요… 다시 누르면 멈춰요.';
@@ -127,19 +164,51 @@ export default {
       if (submit.disabled) return;
       const input = {
         title: form.title.value.trim(),
-        tags: [...form.querySelectorAll('.chip.on')].map(c => c.dataset.tag),
+        tags: [...form.querySelectorAll('.tag[aria-pressed="true"]')].map(b => b.dataset.tag),
         instructions: form.instructions.value.trim(),
         targetLength: Number(form.targetLength.value) || 0,
+        dueDate: form.dueDate.value || '',
         text: text.value,
       };
       store.set({ draft: input });
-      session.input = input;
-      session.result = null;
-      session.ai = null;
-      session.aiError = null;
-      go('loading');
+      Object.assign(session, { input, result: null, ai: null, aiError: null, baseScore: null, ignored: new Set(), phase: 'running', startedAt: performance.now() });
+      session.job = Promise.all([analyzeWithAI(input), new Promise(r => setTimeout(r, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 600 : MIN_MS))])
+        .then(([out]) => {
+          Object.assign(session, { result: out.result, ai: out.ai, aiError: out.error, baseScore: out.result.score, phase: 'done' });
+          store.addHistory({ title: input.title, score: out.result.score, grade: out.result.grade });
+          store.addReward({ xp: REPORT_XP });
+          if (location.hash.startsWith('#/check')) { rerender(); root.querySelector('#scan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+          else toast(`분석 완료! 예상 ${out.result.grade}`);
+        });
+      rerender();
+      root.querySelector('#scan')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    return () => rec && rec.abort();
+    // 진행 애니메이션 (분석 중일 때만)
+    let raf = 0;
+    if (session.phase === 'running') {
+      const bar = root.querySelector('#bar');
+      const pct = root.querySelector('#pct');
+      const items = [...root.querySelectorAll('#steps li')];
+      const tick = now => {
+        const t = (now - session.startedAt) / MIN_MS;
+        const p = Math.min(0.94, t < 1 ? t * 0.85 : 0.85 + (1 - Math.exp(-(t - 1) / 3)) * 0.09);
+        const v = Math.round(p * 100);
+        bar.style.width = `${v}%`; pct.textContent = `${v}%`;
+        bar.parentElement.setAttribute('aria-valuenow', v);
+        const active = Math.min(STEPS.length - 1, Math.floor(Math.min(t, 0.999) * (STEPS.length - 1)) + (t >= 1 ? 1 : 0));
+        items.forEach((li, i) => {
+          const cls = i < active ? 'done' : i === active ? 'run' : 'wait';
+          if (li.className !== cls) {
+            li.className = cls;
+            li.querySelector('.ms').textContent = cls === 'done' ? 'check_circle' : cls === 'run' ? 'sync' : 'hourglass_top';
+            li.querySelector('.st').textContent = cls === 'done' ? '완료' : cls === 'run' ? '진행 중' : '대기';
+          }
+        });
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    }
+    return () => { cancelAnimationFrame(raf); if (rec) rec.abort(); };
   },
 };

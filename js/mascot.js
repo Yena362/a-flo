@@ -123,6 +123,12 @@ export function mascot(key, mood = 'default', size = 96, extraClass = '') {
   return `<span class="mascot ${extraClass}" role="img" aria-label="${label}" style="width:${size}px;height:${size}px"><img src="assets/mascot/${key}/${mood}.png" alt="" onerror="this.remove()">${mascotSvg(key, mood)}</span>`;
 }
 
+// 사용자 레벨(경험치) → 캐릭터 성장 단계 1~3
+export function stageOf(level) {
+  return level >= 6 ? 3 : level >= 3 ? 2 : 1;
+}
+export const STAGE_NAME = { 1: '초보', 2: '열공', 3: '마스터' };
+
 export function levelOf(streak) {
   return streak >= 14 ? 3 : streak >= 3 ? 2 : 1;
 }

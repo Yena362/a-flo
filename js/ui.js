@@ -1,40 +1,61 @@
-// 여러 화면이 같이 쓰는 작은 조각들
+// 여러 화면이 같이 쓰는 조각: 상단 바, 하단 탭, 아이콘, 마스코트 카드, 토스트
 import * as store from './store.js';
+import { mascot, CHARACTERS, stageOf, STAGE_NAME } from './mascot.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-export const flame = (size = 20, color = 'currentColor') =>
-  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" fill="${color}"/></svg>`;
+// Material Symbols 아이콘 (글자 아이콘이라 화면 낭독기에서는 숨김)
+export const icon = (name, cls = '') => `<span class="ms ${cls}" aria-hidden="true">${name}</span>`;
 
-export const ticket = (size = 20) =>
-  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16l-7-4-7 4z" fill="currentColor"/></svg>`;
-
-export function topbar(title = '') {
+export function player() {
   const s = store.get();
+  const lv = store.level();
+  const stage = stageOf(lv);
+  return { s, lv, stage, stageName: STAGE_NAME[stage], name: CHARACTERS[s.mascot].name, streak: store.currentStreak() };
+}
+
+export function topbar() {
+  const { s, lv, streak } = player();
   return `<header class="topbar">
-    ${title ? `<h1 class="topbar-title">${esc(title)}</h1>` : '<a class="logo" href="#/home">에이플로</a>'}
+    <a class="avatar" href="#/home" aria-label="홈으로">${mascot(s.mascot, 'default', 40)}</a>
     <div class="pills">
-      <span class="pill pill-flame" title="연속 학습">${flame(18)}<b>${store.currentStreak()}</b><span class="sr">일 연속</span></span>
-      <span class="pill pill-credit" title="정밀 검사권">${ticket(18)}<b>${s.credits}</b><span class="sr">검사권</span></span>
+      <span class="pill flame" title="연속 학습">${icon('local_fire_department', 'fill')}<b>${streak}일</b></span>
+      <span class="pill gem" title="보유 다이아">${icon('diamond', 'fill')}<b>${s.gems.toLocaleString()}</b></span>
+      <span class="pill lv" title="레벨 (경험치 ${s.xp})">${icon('bolt', 'fill')}<b>Lv.${lv}</b></span>
     </div>
+    <a class="me" href="#/my" aria-label="마이 페이지">${icon('person', 'fill')}</a>
   </header>`;
 }
 
 const TABS = [
-  ['home', '홈', '<path d="M3 11l9-7 9 7v9h-6v-6H9v6H3z"/>'],
-  ['check', '과제 검사', '<path d="M6 3h9l4 4v14H6z"/><path d="M9 13l2 2 4-4"/>'],
-  ['quiz', '퀴즈', '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5V14M12 17h.01"/>'],
-  ['my', '마이', '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'],
+  ['home', '홈', 'cottage'],
+  ['check', '과제 제출', 'upload_file'],
+  ['result', '점수 진단', 'analytics'],
+  ['editor', '교정 에디터', 'spellcheck'],
 ];
 
 export function tabbar(active) {
-  return `<nav class="tabbar" aria-label="주요 메뉴">${TABS.map(([id, label, icon]) =>
-    `<a href="#/${id}" class="${active === id ? 'on' : ''}" ${active === id ? 'aria-current="page"' : ''}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">${icon}</svg>${label}</a>`).join('')}</nav>`;
+  return `<nav class="tabbar" aria-label="주요 메뉴">${TABS.map(([id, label, ic]) =>
+    `<a href="#/${id}" class="${active === id ? 'on' : ''}" ${active === id ? 'aria-current="page"' : ''}>${icon(ic)}${label}</a>`).join('')}</nav>`;
 }
 
-export function bubble(html, mood = '') {
-  return `<div class="bubble ${mood}">${html}</div>`;
+// 마스코트 + 말풍선 카드
+export function mascotTalk({ mood = 'default', html, who = '', small = false, tint = false, badge = true }) {
+  const { s, lv, stage } = player();
+  const m = mood === 'stage' ? `lv${stage}` : mood;
+  return `<section class="hero">
+    <div class="hero-avatar ${small ? 'sm' : ''}">${mascot(s.mascot, m, small ? 70 : 96, 'bob')}${badge ? `<span class="lv-badge">${icon('school', 'fill')}Lv.${lv}</span>` : ''}</div>
+    <div class="bubble ${tint ? 'tint' : ''}">${who ? `<div class="who">${who}</div>` : ''}${html}</div>
+  </section>`;
+}
+
+export function dday(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(`${dateStr}T00:00:00`);
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const n = Math.round((d - t) / 86400000);
+  if (Number.isNaN(n) || n < 0) return '';
+  return n === 0 ? 'D-DAY 방어전' : `D-${n} 방어전`;
 }
 
 export function toast(msg) {
@@ -43,8 +64,9 @@ export function toast(msg) {
   el.setAttribute('role', 'status');
   el.textContent = msg;
   document.body.appendChild(el);
-  setTimeout(() => el.classList.add('out'), 2200);
-  setTimeout(() => el.remove(), 2700);
+  setTimeout(() => el.classList.add('out'), 2400);
+  setTimeout(() => el.remove(), 2900);
 }
 
 export const SEVERITY = { danger: '위험', warning: '주의', safe: '안전' };
+export const LEVEL_WORD = { safe: '안전', warning: '주의', danger: '위험' };
