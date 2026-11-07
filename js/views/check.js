@@ -12,6 +12,11 @@ const STEPS = ['교수님 지시사항 분석', '표절 및 문단 대조', '감
 const MIN_MS = 3600;
 const REPORT_XP = 30;
 
+function fileCard(name, chars, kind = '') {
+  return `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b class="ellipsis">${esc(name)}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${kind ? `${esc(kind)} · ` : ''}${chars.toLocaleString()}자 · 불러오기 완료</div></div>
+    <div class="file-acts"><label class="btn sm" for="file">${icon('refresh')}바꾸기</label><button type="button" class="btn sm danger-ghost" data-act="delete-file" aria-label="${esc(name)} 삭제">${icon('delete')}삭제</button></div></div>`;
+}
+
 function panel(session, s) {
   const phase = session.phase;
   if (!phase) return '';
@@ -77,7 +82,7 @@ export default {
       <section class="card stack">
         <div class="between"><h2 class="card-title">${icon('folder_zip')}과제 원문 파일 업로드</h2><span class="chip xs">HWP · PDF · DOCX</span></div>
         <label class="lbl">과제 이름<input name="title" type="text" placeholder="예: 경영전략론 중간보고서" value="${esc(d.title || '')}"></label>
-        <div id="file-slot">${d.text ? `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b>${esc(d.title || '불러온 과제')}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${d.text.replace(/\s+/g, ' ').trim().length.toLocaleString()}자 · 불러오기 완료</div></div></div>` : ''}</div>
+        <div id="file-slot">${d.text ? fileCard(d.fileName || d.title || '불러온 과제', d.text.replace(/\s+/g, ' ').trim().length, d.fileKind) : ''}</div>
         <label class="drop" id="drop">
           <input type="file" id="file" accept=".hwp,.hwpx,.pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="sr">
           ${icon('cloud_upload')}
@@ -115,9 +120,39 @@ export default {
 
     const slot = root.querySelector('#file-slot');
     const KIND = { hwp: '한글', hwpx: '한글', pdf: 'PDF', docx: '워드', txt: '텍스트', md: '텍스트' };
+    let loaded = { fileName: store.get().draft?.fileName || '', fileKind: store.get().draft?.fileKind || '' };
     const showFile = (name, chars, kind = '') => {
-      slot.innerHTML = `<div class="file">${icon('description', 'fill doc')}<div class="grow"><b class="ellipsis">${esc(name)}</b><div class="sm muted b">${icon('check_circle', 'fill t-green')} ${kind ? `${kind} · ` : ''}${chars.toLocaleString()}자 · 불러오기 완료</div></div><label class="btn sm" for="file">${icon('refresh')}바꾸기</label></div>`;
+      loaded = { fileName: name, fileKind: kind };
+      slot.innerHTML = fileCard(name, chars, kind);
     };
+
+    // 파일 삭제 (되돌리기 가능)
+    let backup = null;
+    slot.addEventListener('click', e => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'delete-file') {
+        backup = { text: text.value, title: form.title.value, ...loaded, chars: text.value.replace(/\s+/g, ' ').trim().length };
+        text.value = '';
+        if (backup.fileName && form.title.value === backup.fileName.replace(/\.[^.]+$/, '')) form.title.value = '';
+        loaded = { fileName: '', fileKind: '' };
+        const d = store.get().draft;
+        if (d) store.set({ draft: { ...d, text: '', fileName: '', fileKind: '', title: form.title.value } });
+        Object.assign(session, { input: null, result: null, ai: null, aiError: null, baseScore: null, phase: null });
+        root.querySelector('#scan')?.remove();
+        slot.innerHTML = `<div class="file removed">${icon('delete', 'fill')}<div class="grow"><b class="ellipsis">${esc(backup.fileName || backup.title || '과제')}</b><div class="sm b">파일과 본문을 지웠어요.</div></div><button type="button" class="btn sm" data-act="undo">${icon('undo')}되돌리기</button></div>`;
+        const det = form.querySelector('details.paste');
+        if (det) det.open = true;
+        update();
+      } else if (act === 'undo' && backup) {
+        text.value = backup.text;
+        form.title.value = backup.title;
+        const d = store.get().draft;
+        if (d) store.set({ draft: { ...d, text: backup.text, title: backup.title, fileName: backup.fileName, fileKind: backup.fileKind } });
+        showFile(backup.fileName || backup.title || '불러온 과제', backup.chars, backup.fileKind);
+        backup = null;
+        update();
+      }
+    });
     const loadFile = async file => {
       if (!file) return;
       const ext = (file.name.split('.').pop() || '').toLowerCase();
@@ -153,7 +188,7 @@ export default {
       form.instructions.value = SAMPLE.instructions;
       text.value = SAMPLE.text;
       form.querySelectorAll('.tag').forEach(b => b.setAttribute('aria-pressed', SAMPLE.tags.includes(b.dataset.tag)));
-      showFile('예시 과제.txt', SAMPLE.text.replace(/\s+/g, ' ').trim().length);
+      showFile('예시 과제.txt', SAMPLE.text.replace(/\s+/g, ' ').trim().length, '텍스트');
       update();
     });
 
@@ -187,6 +222,8 @@ export default {
         targetLength: Number(form.targetLength.value) || 0,
         dueDate: form.dueDate.value || '',
         text: text.value,
+        fileName: text.value.trim() ? loaded.fileName : '',
+        fileKind: text.value.trim() ? loaded.fileKind : '',
       };
       store.set({ draft: input });
       Object.assign(session, { input, result: null, ai: null, aiError: null, baseScore: null, ignored: new Set(), phase: 'running', startedAt: performance.now() });

@@ -32,7 +32,7 @@ export default {
 
     <section class="card stack">
       <h2 class="card-title">${icon('history')}검사 기록</h2>
-      ${s.history.length ? `<ul class="checklist">${s.history.map(h => `<li class="auto">${icon('description', 'fill')}<div class="grow between"><span><b>${esc(h.title || '제목 없는 과제')}</b><br><span class="xs muted b">${esc(h.date)} · ${h.score}점</span></span><span class="chip green">${esc(h.grade)}</span></div></li>`).join('')}</ul>` : '<p class="muted b" style="margin:0">아직 기록이 없어요.</p>'}
+      ${s.history.length ? `<ul class="checklist">${s.history.map((h, i) => `<li class="auto">${icon('description', 'fill')}<div class="grow between"><span><b>${esc(h.title || '제목 없는 과제')}</b><br><span class="xs muted b">${esc(h.date)} · ${h.score}점</span></span><span class="row"><span class="chip green">${esc(h.grade)}</span><button class="btn sm icon-btn" data-del="${i}" aria-label="${esc(h.title || '제목 없는 과제')} 기록 삭제">${icon('delete')}</button></span></div></li>`).join('')}</ul>` : '<p class="muted b" style="margin:0">아직 기록이 없어요.</p>'}
     </section>
 
     <button class="btn red" id="reset">${icon('delete')}모든 기록 초기화</button>
@@ -44,6 +44,13 @@ export default {
     root.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
       store.set({ mascot: b.dataset.m });
       toast(`${CHARACTERS[b.dataset.m].name}와 함께해요!`);
+      rerender();
+    }));
+    root.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+      const list = [...store.get().history];
+      const [gone] = list.splice(Number(b.dataset.del), 1);
+      store.set({ history: list });
+      toast(`'${gone?.title || '제목 없는 과제'}' 기록을 지웠어요`);
       rerender();
     }));
     root.querySelector('#reset').addEventListener('click', () => {

@@ -22,6 +22,7 @@ const session = {
   ignored: new Set(),
   ensureResult() {
     if (!this.input && store.get().draft) this.input = store.get().draft;
+    if (!this.input?.text?.trim()) return null; // 파일을 지웠거나 아직 올리지 않음
     if (this.input && !this.result) this.result = this.ai ? reapply(this.input, this.ai) : analyze(this.input);
     if (this.result && this.baseScore == null) this.baseScore = this.result.score;
     return this.result;

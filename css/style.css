@@ -357,3 +357,16 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .file .btn.sm { flex-shrink: 0; }
 .ellipsis { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ms.spin { animation: spin 1s linear infinite; }
+
+/* 파일 삭제 */
+.file-acts { display: flex; gap: 6px; flex-shrink: 0; }
+.btn.danger-ghost { color: var(--red-ink); border-color: #FFC9C9; box-shadow: 0 3px 0 0 #FFC9C9; }
+.file.removed { background: #F4F6FA; border-color: #DCE2EC; color: var(--ink-2); }
+.file.removed .ms { color: #8A9AB0; font-size: 28px; }
+.btn.icon-btn { min-height: 40px; width: 40px; padding: 0; color: var(--muted); }
+@media (max-width: 430px) {
+  .file { flex-wrap: wrap; }
+  .file .grow { flex: 1 1 160px; }
+  .file-acts { width: 100%; }
+  .file-acts .btn { flex: 1; }
+}
