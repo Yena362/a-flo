@@ -31,12 +31,11 @@ export function mountMindmap(host, data, state, { onAsk } = {}) {
   const tree = toTree(data);
   const byId = new Map(all(tree).map(n => [n.id, n]));
   if (!(state.open instanceof Set)) state.open = new Set(['r']);
-  state.zoom = state.zoom || 1;
 
   host.innerHTML = `
     <div class="mm-tools" role="toolbar" aria-label="마인드맵 도구">
-      <button type="button" class="btn sm" data-mm="expand">모두 펼치기</button>
-      <button type="button" class="btn sm" data-mm="collapse">모두 접기</button>
+      <button type="button" class="btn sm" data-mm="expand" aria-label="모두 펼치기"><span class="ms" aria-hidden="true">unfold_more</span>펼치기</button>
+      <button type="button" class="btn sm" data-mm="collapse" aria-label="모두 접기"><span class="ms" aria-hidden="true">unfold_less</span>접기</button>
       <span class="grow"></span>
       <button type="button" class="btn sm icon-btn" data-mm="out" aria-label="축소"><span class="ms" aria-hidden="true">remove</span></button>
       <button type="button" class="btn sm icon-btn" data-mm="in" aria-label="확대"><span class="ms" aria-hidden="true">add</span></button>
@@ -47,6 +46,8 @@ export function mountMindmap(host, data, state, { onAsk } = {}) {
     </div>
     <div class="mm-ask" hidden></div>`;
   const wrap = host.querySelector('.mm-wrap');
+  // 휴대폰에서는 조금 작게 시작해 큰 갈래가 한눈에 들어오게
+  if (!state.zoom) state.zoom = wrap.clientWidth < 500 ? 0.85 : 1;
   const sizer = host.querySelector('.mm-sizer');
   const canvas = host.querySelector('.mm-canvas');
   const svg = host.querySelector('.mm-lines');

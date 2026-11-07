@@ -433,8 +433,9 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 /* ===== 펼쳐지는 마인드맵 ===== */
 .mm-card { padding: 12px; gap: 10px; }
 .mm { display: flex; flex-direction: column; gap: 10px; }
-.mm-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.mm-tools .btn.sm { min-height: 38px; font-size: 13px; padding: 0 12px; }
+.mm-tools { display: flex; align-items: center; gap: 6px; }
+.mm-tools .btn.sm .ms { font-size: 18px; }
+.mm-tools .btn.sm { min-height: 38px; font-size: 13px; padding: 0 10px; gap: 2px; }
 .mm-tools .icon-btn { width: 38px; min-height: 38px; }
 .mm-wrap { position: relative; overflow: auto; border-radius: 18px; background: #F7F9FD; border: 2px solid #E6ECF5; min-height: 260px; max-height: 70vh; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   background-image: radial-gradient(#DCE3EF 1px, transparent 1px); background-size: 18px 18px; }
