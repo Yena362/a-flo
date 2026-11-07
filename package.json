@@ -1,1 +1,10 @@
-{"name":"a-flo","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.mjs","start":"python3 -m http.server 8080"}}
+{
+  "name": "a-flo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "start": "python3 -m http.server 8080",
+    "try-ai": "node scripts/try-ai.mjs"
+  }
+}
