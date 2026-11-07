@@ -71,7 +71,7 @@ export const SCHEMA = {
   required: ['topicFit', 'logic', 'aiLikelihood', 'summary', 'instructionChecks', 'issues'],
 };
 
-export const MAX_TEXT = 40000;
+export const MAX_TEXT = 150000; // 약 15만 자 (A4 100쪽 안팎). 한국어 기준 요청 크기 약 450KB
 
 export function buildPrompt(input, ruleResult) {
   const tags = (input.tags || []).map(t => `- ${TAG_TEXT[t] || t}`).join('\n') || '- (선택 안 함)';

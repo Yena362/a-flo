@@ -47,6 +47,7 @@ assets/mascot/   ← 디자인팀 PNG를 넣는 곳 (넣는 법은 그 폴더의
 docs/
   ENGINE.md      ← 화면 담당자용: 엔진 사용법
   AI.md          ← Gemini 키 받기 → Vercel 배포 → 화면 연결 (비전공자용)
+  PLAN.md        ← 무료/프리미엄 요금제, 유료 출시 전 할 일
   ROLES.md       ← 누가 무엇을 하는지, GitHub 작업 순서
 tests/           ← 엔진이 제대로 계산하는지 자동으로 확인하는 시험지
 ```

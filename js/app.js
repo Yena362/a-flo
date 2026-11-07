@@ -8,8 +8,10 @@ import check from './views/check.js';
 import result from './views/result.js';
 import editor from './views/editor.js';
 import my from './views/my.js';
+import notebook from './views/notebook.js';
+import premium from './views/premium.js';
 
-const routes = { home, check, result, editor, my };
+const routes = { home, check, result, editor, my, notebook, premium };
 const ALIASES = { quiz: 'home', loading: 'check' }; // 예전 주소 호환
 
 // 화면 사이에서 공유하는 현재 검사 상태

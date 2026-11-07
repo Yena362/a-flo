@@ -5,11 +5,13 @@ import { TAGS } from '../analyzer.js';
 import { analyzeWithAI } from '../ai.js';
 import { readAssignmentFile } from '../docx.js';
 import { SAMPLE } from '../sample.js';
+import { isPremium, remaining, canAnalyze, recordAnalysis, FREE_DAILY_FILES } from '../plan.js';
 
 const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
 const EMOJI = { strict: '🔍', logic: '💡', cite: '📚', structure: '📝', length: '⏱️' };
 const STEPS = ['교수님 지시사항 분석', '표절 및 문단 대조', '감점 요소 추출', 'AI 내용·논리 평가'];
 const MIN_MS = 3600;
+const MAX_FILE_MB = 100;
 const REPORT_XP = 30;
 
 function fileCard(name, chars, kind = '') {
@@ -38,6 +40,7 @@ function panel(session, s) {
     </ol>
     ${done ? `
       ${session.aiError ? `<p class="sm muted b" style="margin:0">${icon('info')} AI 채점 없이 기본 채점만 했어요 (${esc(session.aiError)})</p>` : ''}
+      ${r.truncated ? `<p class="sm muted b" style="margin:0">${icon('info')} 글이 길어서 AI는 앞 ${r.truncated.toLocaleString()}자를 읽었어요. 형식 검사는 전체를 했어요.</p>` : ''}
       <div class="payoff">
         <div><span class="sm muted b">고치면 오르는 점수</span><div class="h2 t-green">+${r.potential.gain}점 · ${r.potential.grade} 가능</div></div>
         <span class="chip green">${icon('workspace_premium', 'fill')}지금 ${r.grade}</span>
@@ -54,7 +57,8 @@ export default {
     const tags = new Set(d.tags || []);
     const running = session.phase === 'running';
     return `${topbar()}
-    <div class="row wrap"><span class="chip ink">STEP 1 &amp; 3</span><span class="chip green">과제 &amp; 교수 맞춤 분석</span><span class="chip blue">${icon('auto_awesome')}AI 실시간 진단</span></div>
+    <div class="row wrap"><span class="chip ink">STEP 1 &amp; 3</span><span class="chip green">과제 &amp; 교수 맞춤 분석</span>
+      ${isPremium() ? `<span class="chip ink">${icon('workspace_premium', 'fill')}프리미엄 · 무제한</span>` : `<a class="chip ${remaining() ? 'blue' : 'red'}" href="#/premium">${icon('confirmation_number')}오늘 무료 검사 ${remaining()}/${FREE_DAILY_FILES}회 남음</a>`}</div>
     ${mascotTalk({ mood: 'quiz', small: true, html: '"어떤 교수님 수업이야? 스타일을 알려주면 감점 요소를 꼼꼼하게 걸러낼게!"<p class="sm muted" style="margin:6px 0 0">과제 파일과 교수님 취향을 입력하면 AI가 분석해요.</p>' })}
 
     <form class="stack" id="form" novalidate style="gap:18px">
@@ -99,6 +103,15 @@ export default {
     </form>
 
     ${panel(session, s)}
+    ${session.paywall ? `<div class="modal-wash" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+      <div class="modal">
+        <div style="display:grid;place-items:center">${mascot(s.mascot, 'sad', 110)}</div>
+        <h2 class="h2" id="pw-title">오늘 무료 검사를 다 썼어요</h2>
+        <p class="muted b" style="margin:0">무료는 하루 과제 ${FREE_DAILY_FILES}개까지 검사할 수 있어요. 내일 다시 쓰거나, 프리미엄으로 무제한 검사하세요.</p>
+        <a class="btn orange big" href="#/premium" id="pw-go">${icon('workspace_premium', 'fill')}프리미엄 알아보기</a>
+        <button class="btn" id="pw-close">내일 할게요</button>
+      </div>
+    </div>` : ''}
     ${tabbar('check')}`;
   },
 
@@ -160,14 +173,17 @@ export default {
     const loadFile = async file => {
       if (!file) return;
       const ext = (file.name.split('.').pop() || '').toLowerCase();
-      if (file.size > 30 * 1024 * 1024) {
-        slot.innerHTML = `<div class="file err">${icon('error', 'fill')}<div class="grow"><b>파일이 너무 커요 (30MB 이하)</b><div class="sm b">본문만 복사해서 아래에 붙여 넣어 주세요.</div></div></div>`;
+      if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        slot.innerHTML = `<div class="file err">${icon('error', 'fill')}<div class="grow"><b>파일이 너무 커요 (${MAX_FILE_MB}MB 이하)</b><div class="sm b">본문만 복사해서 아래에 붙여 넣어 주세요.</div></div></div>`;
         return;
       }
-      slot.innerHTML = `<div class="file busy">${icon('progress_activity', 'spin')}<div class="grow"><b class="ellipsis">${esc(file.name)}</b><div class="sm muted b">${ext === 'pdf' ? 'PDF 읽기 도구를 불러와 글자를 읽는 중…' : '파일에서 글자를 읽는 중…'}</div></div></div>`;
+      const mb = file.size / 1048576;
+      slot.innerHTML = `<div class="file busy">${icon('progress_activity', 'spin')}<div class="grow"><b class="ellipsis">${esc(file.name)}</b><div class="sm muted b" id="read-status">${mb >= 1 ? `${mb.toFixed(1)}MB · ` : ''}파일에서 글자를 읽는 중…</div></div></div>`;
+      const status = slot.querySelector('#read-status');
+      const onProgress = msg => { if (status) status.textContent = `${mb >= 1 ? `${mb.toFixed(1)}MB · ` : ''}${msg}`; };
       submit.disabled = true;
       try {
-        const body = (await readAssignmentFile(file)).trim();
+        const body = (await readAssignmentFile(file, onProgress)).trim();
         if (body.replace(/\s/g, '').length < 20) throw new Error('파일에서 읽을 수 있는 글자가 거의 없어요. 내용을 붙여 넣어 주세요.');
         text.value = body;
         if (!form.title.value.trim() || form.title.dataset.auto === '1') { form.title.value = file.name.replace(/\.[^.]+$/, ''); form.title.dataset.auto = '1'; }
@@ -220,6 +236,7 @@ export default {
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (submit.disabled) return;
+      if (!canAnalyze()) { session.paywall = true; session.afterUpgrade = 'check'; rerender(); return; }
       const input = {
         title: form.title.value.trim(),
         tags: [...form.querySelectorAll('.tag[aria-pressed="true"]')].map(b => b.dataset.tag),
@@ -231,6 +248,7 @@ export default {
         fileKind: text.value.trim() ? loaded.fileKind : '',
       };
       store.set({ draft: input });
+      recordAnalysis();
       Object.assign(session, { input, result: null, ai: null, aiError: null, baseScore: null, ignored: new Set(), phase: 'running', startedAt: performance.now() });
       session.job = Promise.all([analyzeWithAI(input), new Promise(r => setTimeout(r, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 600 : MIN_MS))])
         .then(([out]) => {
@@ -269,6 +287,8 @@ export default {
       };
       raf = requestAnimationFrame(tick);
     }
+    root.querySelector('#pw-close')?.addEventListener('click', () => { session.paywall = false; rerender(); });
+    root.querySelector('#pw-go')?.addEventListener('click', () => { session.paywall = false; });
     return () => { cancelAnimationFrame(raf); if (rec) rec.abort(); };
   },
 };

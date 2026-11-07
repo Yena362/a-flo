@@ -97,7 +97,7 @@ export async function extractHwpxText(arrayBuffer) {
 }
 
 // ---------- PDF (pdf.js) ----------
-export async function extractPdfText(arrayBuffer) {
+export async function extractPdfText(arrayBuffer, onProgress = () => {}) {
   let pdfjs;
   try {
     pdfjs = await import(/* @vite-ignore */ `${PDFJS}/build/pdf.min.mjs`);
@@ -108,6 +108,7 @@ export async function extractPdfText(arrayBuffer) {
   const doc = await pdfjs.getDocument({ data: new Uint8Array(arrayBuffer), cMapUrl: `${PDFJS}/cmaps/`, cMapPacked: true, standardFontDataUrl: `${PDFJS}/standard_fonts/` }).promise;
   const pages = [];
   for (let i = 1; i <= doc.numPages; i++) {
+    onProgress(`PDF ${i} / ${doc.numPages}쪽 읽는 중…`);
     const page = await doc.getPage(i);
     const { items } = await page.getTextContent();
     let s = '';
@@ -124,13 +125,13 @@ export async function extractPdfText(arrayBuffer) {
 }
 
 // ---------- 확장자별 ----------
-export async function readAssignmentFile(file) {
+export async function readAssignmentFile(file, onProgress = () => {}) {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (ext === 'txt' || ext === 'md') return file.text();
   if (ext === 'docx') return extractDocxText(await file.arrayBuffer());
   if (ext === 'hwpx') return extractHwpxText(await file.arrayBuffer());
   if (ext === 'hwp') return extractHwpText(await file.arrayBuffer());
-  if (ext === 'pdf') return extractPdfText(await file.arrayBuffer());
+  if (ext === 'pdf') { onProgress('PDF 읽기 도구를 불러오는 중…'); return extractPdfText(await file.arrayBuffer(), onProgress); }
   if (ext === 'doc') throw new Error('예전 워드(.doc) 파일은 읽을 수 없어요. .docx로 저장해 주세요.');
   throw new Error('HWP · HWPX · DOCX · PDF · TXT 파일을 올려 주세요.');
 }

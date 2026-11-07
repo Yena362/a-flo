@@ -8,8 +8,9 @@
 
 import { analyze } from './analyzer.js';
 import { mergeAI } from './ai-merge.js';
+import { MAX_TEXT } from './ai-prompt.js';
 
-export async function analyzeWithAI(input, { endpoint = '/api/analyze', timeoutMs = 60000 } = {}) {
+export async function analyzeWithAI(input, { endpoint = '/api/analyze', timeoutMs = 90000 } = {}) {
   const rule = analyze(input);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -17,14 +18,17 @@ export async function analyzeWithAI(input, { endpoint = '/api/analyze', timeoutM
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // 아주 긴 글은 앞부분 15만 자만 AI에게 보냄 (규칙 엔진은 전체를 검사)
       body: JSON.stringify({
-        text: input.text, tags: input.tags, instructions: input.instructions, targetLength: input.targetLength,
+        text: input.text.slice(0, MAX_TEXT), tags: input.tags, instructions: input.instructions, targetLength: input.targetLength,
       }),
       signal: ctrl.signal,
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ai) throw new Error(data.error || `AI 서버 응답 오류 (${res.status})`);
-    return { result: mergeAI(rule, data.ai, input.text), ai: data.ai, model: data.model, error: null };
+    const result = mergeAI(rule, data.ai, input.text);
+    if (input.text.length > MAX_TEXT) result.truncated = MAX_TEXT;
+    return { result, ai: data.ai, model: data.model, error: null };
   } catch (e) {
     const error = e.name === 'AbortError' ? 'AI 응답이 늦어 기본 채점만 보여 드려요.' : e.message;
     return { result: mergeAI(rule, null, input.text), ai: null, error };

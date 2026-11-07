@@ -1,6 +1,7 @@
 // 여러 화면이 같이 쓰는 조각: 상단 바, 하단 탭, 아이콘, 마스코트 카드, 토스트
 import * as store from './store.js';
 import { mascot, CHARACTERS, stageOf, STAGE_NAME } from './mascot.js';
+import { isPremium } from './plan.js';
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -23,7 +24,7 @@ export function topbar() {
       <span class="pill gem" title="보유 다이아">${icon('diamond', 'fill')}<b>${s.gems.toLocaleString()}</b></span>
       <span class="pill lv" title="레벨 (경험치 ${s.xp})">${icon('bolt', 'fill')}<b>Lv.${lv}</b></span>
     </div>
-    <a class="me" href="#/my" aria-label="마이 페이지">${icon('person', 'fill')}</a>
+    <a class="me ${isPremium() ? 'pro' : ''}" href="#/my" aria-label="마이 페이지${isPremium() ? ' (프리미엄)' : ''}">${icon(isPremium() ? 'workspace_premium' : 'person', 'fill')}</a>
   </header>`;
 }
 
@@ -31,7 +32,8 @@ const TABS = [
   ['home', '홈', 'cottage'],
   ['check', '과제 제출', 'upload_file'],
   ['result', '점수 진단', 'analytics'],
-  ['editor', '교정 에디터', 'spellcheck'],
+  ['editor', '교정', 'spellcheck'],
+  ['notebook', '노트북', 'menu_book'],
 ];
 
 export function tabbar(active) {

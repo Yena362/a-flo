@@ -3,11 +3,11 @@ import { topbar, tabbar, icon, esc, mascotTalk, player, dday } from '../ui.js';
 import { mascot } from '../mascot.js';
 import { dailyQuestion } from '../quiz-bank.js';
 import { today } from '../store.js';
+import { isPremium, remaining, FREE_DAILY_FILES } from '../plan.js';
 
-const MODES = {
-  assignment: { label: '과제 모드', icon: 'edit_note', topic: '과제 상식' },
-  exam: { label: '시험 모드', icon: 'target', topic: '전공 개념' },
-};
+// 퀴즈는 시험 모드(전공 핵심 개념)만 운영
+const MODE = 'exam';
+const TOPIC = '시험 대비 · 전공 개념';
 const LETTERS = ['A', 'B', 'C', 'D'];
 const REWARD = { gems: 50, xp: 30, streakBonusXp: 20 };
 let selected = null; // 제출 전 고른 보기
@@ -26,14 +26,13 @@ function week(streak, solved) {
 }
 
 export default {
-  render({ store, session, params }) {
+  render({ store, session }) {
     const { s, stageName, name, streak } = player();
     const solved = store.solvedToday();
     const broken = store.streakBroken();
-    const mode = MODES[params.get('mode')] ? params.get('mode') : (session.quizMode || 'assignment');
-    const key = `${today()}:${mode}`;
+    const key = `${today()}:${MODE}`;
     const st = s.quizToday[key] || { offset: 0 };
-    const q = dailyQuestion(mode, today(), st.offset);
+    const q = dailyQuestion(MODE, today(), st.offset);
     const done = st.picked != null;
     const correct = done && st.picked === q.answer;
     const due = dday(s.draft?.dueDate);
@@ -60,13 +59,9 @@ export default {
       </ol>
     </section>
 
-    <div class="seg" role="tablist" aria-label="퀴즈 모드">
-      ${Object.entries(MODES).map(([id, m]) => `<a role="tab" href="#/home?mode=${id}" aria-selected="${id === mode}" class="${id === mode ? 'on' : ''}">${icon(m.icon)}${m.label}</a>`).join('')}
-    </div>
-
     <section class="card quiz stack" style="gap:16px">
       <div class="row wrap">
-        <span class="chip blue">${icon('timer')}오늘의 1분 퀴즈 · ${MODES[mode].topic}</span>
+        <span class="chip blue">${icon('timer')}오늘의 1분 퀴즈 · ${TOPIC}</span>
         <span class="chip blue">${icon('diamond', 'fill')}+${REWARD.gems} 보상</span>
         ${st.offset ? `<span class="chip">추가 문제 ${st.offset}</span>` : ''}
       </div>
@@ -97,6 +92,12 @@ export default {
       </div>
     </section>
 
+    <a class="card stack promo" href="${isPremium() ? '#/notebook' : '#/premium'}">
+      <div class="between"><span class="chip ink">${icon('workspace_premium', 'fill')}PREMIUM</span><span class="sm b">${isPremium() ? '이용 중' : `오늘 무료 검사 ${remaining()}/${FREE_DAILY_FILES}`}</span></div>
+      <h2 class="h3">${isPremium() ? '자료 노트북 열기' : '시험 기간엔 프리미엄으로'}</h2>
+      <p class="sm b" style="margin:0">과제 검사 무제한 · 내 강의자료로 답하는 노트북 · 요약·예상 문제·암기 카드·개념 지도</p>
+    </a>
+
     ${session.reward ? `<div class="modal-wash" role="dialog" aria-modal="true" aria-labelledby="rw-title">
       <div class="modal">
         <div style="display:grid;place-items:center">${mascot(s.mascot, 'cheer', 120, 'bob')}</div>
@@ -113,10 +114,8 @@ export default {
     ${tabbar('home')}`;
   },
 
-  mount(root, { store, session, params, rerender }) {
-    const mode = MODES[params.get('mode')] ? params.get('mode') : (session.quizMode || 'assignment');
-    if (session.quizMode !== mode) { session.quizMode = mode; selected = null; }
-    const key = `${today()}:${mode}`;
+  mount(root, { store, session, rerender }) {
+    const key = `${today()}:${MODE}`;
     const saveQ = patch => {
       const all = { ...store.get().quizToday };
       for (const k of Object.keys(all)) if (!k.startsWith(today())) delete all[k];
@@ -132,7 +131,7 @@ export default {
     root.querySelector('#submit')?.addEventListener('click', () => {
       if (selected == null) return;
       const st = store.get().quizToday[key] || { offset: 0 };
-      const q = dailyQuestion(mode, today(), st.offset);
+      const q = dailyQuestion(MODE, today(), st.offset);
       const picked = selected;
       selected = null;
       saveQ({ picked });

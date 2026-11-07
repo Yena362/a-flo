@@ -9,7 +9,9 @@ const DEFAULT = {
   credits: 3,
   gems: 0, // 💎 퀴즈 보상 재화
   xp: 0, // 경험치 → 레벨
-  rewarded: {}, // { 'YYYY-MM-DD:assignment': true } 오늘 보상 받은 퀴즈
+  rewarded: {}, // { 'YYYY-MM-DD:exam': true } 오늘 보상 받은 퀴즈
+  plan: 'free', // 'free' | 'premium'
+  usage: {}, // { date: 'YYYY-MM-DD', count: 오늘 검사한 과제 수 }
   quizToday: {}, // { 'YYYY-MM-DD:assignment': { done: true, correct: true, offset: 0 } }
   history: [], // [{ date, title, score, grade }]
   draft: null, // 마지막 검사 입력

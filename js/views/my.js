@@ -1,6 +1,7 @@
 // 마이: 레벨·경험치, 내 코치(캐릭터 4종) 고르기, 검사 기록, 초기화
 import { topbar, tabbar, icon, esc, toast, player } from '../ui.js';
 import { mascot, CHARACTERS } from '../mascot.js';
+import { isPremium, remaining, FREE_DAILY_FILES } from '../plan.js';
 
 export default {
   render({ store }) {
@@ -15,6 +16,11 @@ export default {
       <div class="progress" role="progressbar" aria-label="레벨 경험치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${into}"><div class="bar" style="width:${into}%"></div></div>
       <p class="xs muted b" style="margin:0">퀴즈 정답 +30 XP · 과제 검사 완료 +30 XP · 3일 이상 연속이면 +20 XP 보너스. Lv.3에 열공, Lv.6에 마스터로 성장해요.</p>
     </section>
+
+    <a class="card stack promo" href="#/premium">
+      <div class="between"><span class="chip ink">${icon('workspace_premium', 'fill')}${isPremium() ? '프리미엄 이용 중' : '무료 요금제'}</span>${icon('chevron_right')}</div>
+      <p class="sm b" style="margin:0">${isPremium() ? '과제 검사 무제한 · 자료 노트북 · 시험 대비 팩' : `오늘 남은 무료 검사 ${remaining()}/${FREE_DAILY_FILES}회 · 프리미엄으로 무제한`}</p>
+    </a>
 
     <section class="grid-3">
       <div class="tile">${icon('local_fire_department', 'fill t-orange')}최고 연속<b>${s.best}일</b></div>
