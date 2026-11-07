@@ -15,7 +15,8 @@ export default {
     const rubricLevel = x => (x.score / x.max >= 0.9 ? 'safe' : x.score / x.max >= 0.7 ? 'warning' : 'danger');
 
     return `${topbar('분석 결과')}
-    <h1 class="h2 doc-title">${esc(title)}</h1>
+    <div class="row-between"><h1 class="h2 doc-title">${esc(title)}</h1>
+      <span class="source ${r.source === 'ai' ? 'on' : ''}" title="${esc(session.aiError || '')}">${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span></div>
     <section class="banner">
       <div class="banner-scores">
         <div><span class="small">예상 점수</span><b class="score">${r.score}<small>/100</small></b></div>
@@ -45,12 +46,16 @@ export default {
       ${r.rubric.map(x => `<div class="rub">
         <div class="row-between small"><span>${esc(x.label)}</span><b class="t-${rubricLevel(x)}">${x.score}/${x.max}</b></div>
         <div class="meter"><span class="m-${rubricLevel(x)}" style="width:${Math.round((x.score / x.max) * 100)}%"></span></div>
+        ${x.comment ? `<p class="small muted rub-comment">${esc(x.comment)}</p>` : ''}
       </div>`).join('')}
     </section>
 
     ${r.checklist.length ? `<section class="card stack">
       <h2 class="h3">교수님 지시사항 체크</h2>
-      <ul class="checklist">${r.checklist.map(c => `<li class="${c.auto ? 'auto' : ''}"><span class="small tag">${c.auto ? '자동 확인' : '직접 확인'}</span>${esc(c.text)}</li>`).join('')}</ul>
+      <ul class="checklist">${r.checklist.map(c => {
+        const tag = c.met === true ? ['met', '지킴'] : c.met === false ? ['unmet', '안 지킴'] : c.auto ? ['auto', '자동 확인'] : ['', '직접 확인'];
+        return `<li class="${tag[0]}"><span class="small tag">${tag[1]}</span><span>${esc(c.text)}${c.evidence ? `<span class="small muted evidence">${esc(c.evidence)}</span>` : ''}</span></li>`;
+      }).join('')}</ul>
     </section>` : ''}
 
     <a class="btn primary big" href="#/editor">교정 에디터에서 바로 고치기</a>

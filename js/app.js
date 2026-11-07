@@ -1,6 +1,7 @@
 // 화면 전환(해시 라우터). 화면을 추가하려면 views/ 에 파일을 만들고 아래 routes에 등록하세요.
 import * as store from './store.js';
 import { analyze } from './analyzer.js';
+import { reapply } from './ai.js';
 import home from './views/home.js';
 import quiz from './views/quiz.js';
 import check from './views/check.js';
@@ -15,15 +16,17 @@ const routes = { home, quiz, check, loading, result, editor, my };
 const session = {
   input: null,
   result: null,
+  ai: null, // 마지막 Gemini 응답 (수정안 적용 후 재호출 없이 재사용)
+  aiError: null,
   ensureResult() {
     if (!this.input && store.get().draft) this.input = store.get().draft;
-    if (this.input && !this.result) this.result = analyze(this.input);
+    if (this.input && !this.result) this.result = this.ai ? reapply(this.input, this.ai) : analyze(this.input);
     return this.result;
   },
   reanalyze(text) {
     this.input = { ...this.input, text };
     store.set({ draft: this.input });
-    this.result = analyze(this.input);
+    this.result = this.ai ? reapply(this.input, this.ai) : analyze(this.input);
     return this.result;
   },
 };

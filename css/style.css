@@ -172,6 +172,12 @@ textarea { resize: vertical; }
 .checklist li { display: flex; gap: 8px; align-items: baseline; }
 .checklist .tag { flex-shrink: 0; padding: 2px 8px; border-radius: 6px; background: #F1ECE2; font-weight: 700; }
 .checklist .auto .tag { background: var(--accent-soft); color: var(--accent-dark); }
+.checklist .met .tag { background: var(--safe-bg); color: var(--safe); }
+.checklist .unmet .tag { background: var(--danger-bg); color: var(--danger); }
+.checklist .evidence { display: block; }
+.rub-comment { margin: 0; }
+.source { flex-shrink: 0; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: #F1ECE2; color: var(--muted); }
+.source.on { background: var(--accent-soft); color: var(--accent-dark); }
 
 /* 교정 에디터 */
 .editor-bar { display: flex; align-items: center; gap: 10px; }

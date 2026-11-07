@@ -135,6 +135,8 @@ export default {
       store.set({ draft: input });
       session.input = input;
       session.result = null;
+      session.ai = null;
+      session.aiError = null;
       go('loading');
     });
 
