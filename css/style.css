@@ -478,3 +478,10 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
   .mm-tools .mm-txt { font-size: 12px; }
 }
 @media (max-width: 340px) { .mm-tools .mm-txt { display: none; } }
+
+/* 강의 받아 적기 */
+.rec-start { width: 100%; }
+.rec-panel { padding: 14px; border: 2px solid #F3C4C4; border-radius: 16px; background: #FFF8F8; }
+.rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); display: inline-block; animation: pulse 1s infinite; }
+.rec-live { max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; background: #fff; border-radius: 12px; padding: 10px 12px; }
+@media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
