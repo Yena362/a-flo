@@ -186,9 +186,26 @@ export function recordsToText(bytes) {
   return paras;
 }
 
+// 압축 풀기: 끝부분이 잘렸거나 뒤에 군더더기가 붙은 스트림도 읽은 데까지는 살린다
+// (한컴 프로그램이 만든 일부 파일은 브라우저 기본 압축 해제기가 "데이터가 불완전"하다며 통째로 거부함)
 async function inflateRaw(data) {
-  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      total += value.length;
+    }
+  } catch (e) {
+    if (!total) throw e;
+  }
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const c of chunks) { out.set(c, p); p += c.length; }
+  return out;
 }
 
 export async function extractHwpText(arrayBuffer) {
