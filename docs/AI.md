@@ -17,7 +17,7 @@
 ## 1. Gemini 키 받기 (5분)
 
 1. [Google AI Studio](https://aistudio.google.com/apikey)에 구글 계정으로 로그인
-2. **Create API key** 클릭 → 만들어진 키(`AIza…`로 시작) 복사
+2. **Create API key** 클릭 → 만들어진 키(`AQ.…` 또는 `AIza…`로 시작) 복사
 3. 키는 카톡·GitHub·노션에 **절대 붙여 넣지 마세요.** 아래 Vercel 설정에만 넣어요.
 
 ## 2. 내 컴퓨터에서 키가 되는지 확인 (선택)
