@@ -7,10 +7,24 @@ const DEFAULT = {
   best: 0,
   lastSolved: null, // 'YYYY-MM-DD'
   credits: 3,
+  gems: 0, // 💎 퀴즈 보상 재화
+  xp: 0, // 경험치 → 레벨
+  rewarded: {}, // { 'YYYY-MM-DD:exam': true } 오늘 보상 받은 퀴즈
+  plan: 'free', // 'free' | 'premium'
+  usage: {}, // { date: 'YYYY-MM-DD', count: 오늘 검사한 과제 수 }
   quizToday: {}, // { 'YYYY-MM-DD:assignment': { done: true, correct: true, offset: 0 } }
   history: [], // [{ date, title, score, grade }]
+  wrongNote: [], // 오답 노트 [{ id, q, options, answer, explain, from, misses, addedAt }] (wrong-note.js)
   draft: null, // 마지막 검사 입력
+  updatedAt: 0, // 마지막으로 바뀐 시각(ms) — 클라우드와 합칠 때 어느 쪽이 최신인지 가리는 용도
 };
+
+// 값이 바뀔 때 알려 달라고 등록하는 곳 (cloud.js가 클라우드 백업에 사용)
+const listeners = new Set();
+export function subscribe(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
 
 let state = load();
 
@@ -29,7 +43,17 @@ function save() {
 export function get() { return state; }
 
 export function set(patch) {
-  state = { ...state, ...patch };
+  state = { ...state, ...patch, updatedAt: Date.now() };
+  save();
+  for (const fn of listeners) {
+    try { fn(state); } catch { /* 한 구독자의 오류가 저장을 막지 않게 */ }
+  }
+  return state;
+}
+
+// 클라우드에서 받은 값으로 통째로 바꾸기 (구독자에게 알리지 않아 다시 올리는 반복을 막아요)
+export function replace(next) {
+  state = { ...DEFAULT, ...next };
   save();
   return state;
 }
@@ -65,6 +89,16 @@ export function recordCorrect() {
   const streak = state.lastSolved === yesterday() ? state.streak + 1 : 1;
   set({ streak, best: Math.max(state.best, streak), lastSolved: today(), credits: state.credits + 1 });
   return { streak, firstToday: true };
+}
+
+// 💎·XP 지급
+export function addReward({ gems = 0, xp = 0 }) {
+  set({ gems: state.gems + gems, xp: state.xp + xp });
+}
+
+// 레벨: 경험치 100마다 1씩
+export function level() {
+  return 1 + Math.floor(state.xp / 100);
 }
 
 export function addHistory(entry) {

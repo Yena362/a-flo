@@ -1,6 +1,8 @@
 # 채점 엔진 사용법 (화면 담당자용)
 
-화면에서는 **함수 하나만 부르면 돼요**: `analyze()`.
+화면에서는 **함수 하나만 부르면 돼요**: `analyze()` (규칙 엔진만) 또는 `analyzeWithAI()` (규칙 + Gemini, 서버 필요).
+
+> AI까지 쓰려면 [docs/AI.md](AI.md)를 보세요. 돌려받는 결과 모양은 둘 다 같아요.
 과제 글과 교수님 정보를 넣으면, 결과 화면에 필요한 숫자와 문장을 전부 돌려줘요.
 
 ## 1. 불러오기
@@ -68,7 +70,8 @@ const result = analyze({
 
 | 파일 | 함수 | 용도 |
 |---|---|---|
-| `docx.js` | `readAssignmentFile(file)` | 업로드한 DOCX·TXT에서 글자 뽑기 (PDF·HWP는 준비 중이라 오류 메시지를 돌려줌) |
+| `docx.js` | `readAssignmentFile(file)` | 업로드 파일에서 글자 뽑기: **HWP·HWPX·PDF·DOCX·TXT** (암호·배포용 한글, 스캔 PDF는 이유를 담은 오류) |
+| `hwp.js` | `extractHwpText(buffer)` | 한글 5.x(.hwp) 본문 추출 — 라이브러리 없이 복합 파일·레코드 직접 해석 |
 | `quiz-bank.js` | `dailyQuestion(mode, '2026-11-07')` | 오늘의 퀴즈 1문제 (`mode`: `'assignment'` 또는 `'exam'`) |
 | `store.js` | `currentStreak()`, `recordCorrect()` | 불꽃 연속 일수, 정답 시 불꽃·검사권 +1 |
 | `mascot.js` | `mascot('chick', 'danger', 96)` | 캐릭터 그림 HTML (디자인 PNG가 있으면 PNG 사용) |
