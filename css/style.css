@@ -521,3 +521,12 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 
 /* 마이: 로그인한 계정 사진 */
 .acct-photo { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); background: var(--tint); }
+
+/* 홈 오답 노트 */
+.wn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wn-item { border: 2px solid #FFD8B5; border-radius: 18px; background: #FFF9F3; overflow: hidden; }
+.wn-item.open { border-color: #FFB877; }
+.wn-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; background: none; border: 0; text-align: left; font: inherit; font-weight: 800; cursor: pointer; color: inherit; }
+.wn-q { flex: 1; min-width: 0; }
+.wn-item:not(.open) .wn-q { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wn-body { padding: 0 16px 16px; }

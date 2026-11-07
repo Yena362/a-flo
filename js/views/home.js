@@ -5,13 +5,13 @@ import { dailyQuestion } from '../quiz-bank.js';
 import { today } from '../store.js';
 import { isPremium, remaining, FREE_DAILY_FILES } from '../plan.js';
 import { study, loadNotebook, saveNotebook, sourcesKey } from '../study.js';
+import { list as wrongList, addWrong, removeWrong, pickState, retryHtml } from '../wrong-note.js';
 
 // 퀴즈는 시험 모드(전공 핵심 개념)만 운영
 const MODE = 'exam';
 const TOPIC = '시험 대비 · 전공 개념';
 const LETTERS = ['A', 'B', 'C', 'D'];
 const REWARD = { gems: 50, xp: 30, streakBonusXp: 20 };
-let selected = null; // 제출 전 고른 보기
 
 // 노트북에 올린 강의자료로 만든 예상 문제가 있으면 그걸로, 없으면 기본 문제 은행으로
 function quizSource() {
@@ -36,6 +36,41 @@ function week(streak, solved) {
     const lit = ago <= span;
     return { label, cls: lit ? 'lit' : '', ic: 'local_fire_department', sr: lit ? '학습함' : '안 함' };
   });
+}
+
+// 홈 오답 노트: 예상 문제에서 틀린 문제를 하나씩 펼쳐 다시 풀기
+function wrongNoteCard(session) {
+  const items = wrongList();
+  if (!items.length) return '';
+  const SHOW = 3;
+  const shown = session.wnAll ? items : items.slice(0, SHOW);
+  return `<section class="card stack wrong-note" aria-labelledby="wn-title">
+    <div class="between wrap">
+      <h2 class="h3" id="wn-title" style="margin:0">${icon('bookmark', 'fill t-orange')} 오답 노트</h2>
+      <span class="chip orange">${items.length}문제</span>
+    </div>
+    <p class="sm muted b" style="margin:0">예상 문제에서 틀린 문제예요. 다시 풀어 맞히면 노트에서 뺄 수 있어요.</p>
+    <ul class="wn-list">${shown.map(w => {
+      const open = session.wnOpen === w.id;
+      const st = session.wnPick?.[w.id];
+      const over = st?.solved || st?.revealed;
+      const actions = over ? `<div class="row wrap" style="margin-top:10px">
+          ${st.solved ? `<button class="btn sm green" data-wn-del="${w.id}">${icon('check_circle', 'fill')}외웠어요 · 노트에서 빼기</button>` : ''}
+          <button class="btn sm" data-wn-retry="${w.id}">${icon('replay')}다시 풀기</button></div>` : '';
+      return `<li class="wn-item ${open ? 'open' : ''}">
+        <button class="wn-head" data-wn-open="${w.id}" aria-expanded="${open}">
+          <span class="wn-q">${esc(w.q)}</span>
+          <span class="row" style="gap:6px;flex-shrink:0">${w.misses > 1 ? `<span class="chip red xs">${w.misses}번 틀림</span>` : ''}${icon(open ? 'expand_less' : 'expand_more')}</span>
+        </button>
+        ${open ? `<div class="wn-body stack" style="gap:10px">
+          ${w.from ? `<p class="xs muted b" style="margin:0">${icon('description')}출처: ${esc(w.from)}</p>` : ''}
+          ${retryHtml(w, st, { attr: `data-wn="${w.id}"`, revealAttr: `data-wn-reveal="${w.id}"`, extra: actions })}
+          ${!over ? `<button class="link xs" data-wn-del="${w.id}">노트에서 빼기</button>` : ''}
+        </div>` : ''}
+      </li>`;
+    }).join('')}</ul>
+    ${items.length > SHOW ? `<button class="link sm" id="wn-more">${session.wnAll ? '접기' : `${items.length - SHOW}문제 더 보기`}</button>` : ''}
+  </section>`;
 }
 
 export default {
@@ -84,21 +119,22 @@ export default {
       ${session.homeQuizBusy ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('progress_activity', 'spin')}올린 강의자료로 예상 문제를 만드는 중이에요. 다 되면 여기로 바뀌어요.</p>` : ''}
       ${!src.mine && !src.sources.length && isPremium() ? `<p class="xs muted b" style="margin:-6px 0 0"><a href="#/notebook">자료 노트북</a>에 강의자료를 올리면 내 자료로 문제가 나와요.</p>` : ''}
       <h2 class="q">${esc(q.q)}</h2>
-      <p class="muted b" style="margin:-6px 0 0">정답을 고르고 감점 방어 팁을 확인해 보세요!</p>
+      ${done ? '' : `<p class="muted b" style="margin:-6px 0 0">보기를 누르면 바로 채점돼요${s.rewarded?.[REWARD_KEY()] ? '' : ` · 맞히면 +${REWARD.gems}💎`}</p>`}
       <div class="options" role="radiogroup" aria-label="보기">
         ${q.options.map((o, i) => {
           let cls = '';
           if (done) cls = i === q.answer ? 'right' : i === st.picked ? 'wrong' : '';
-          else if (selected === i) cls = 'picked';
           const mark = done && i === q.answer ? icon('check', 'fill') : LETTERS[i];
-          return `<button class="option ${cls}" data-i="${i}" role="radio" aria-checked="${selected === i || (done && st.picked === i)}" ${done ? 'disabled' : ''}><span class="letter">${mark}</span><span>${esc(o)}</span></button>`;
+          return `<button class="option ${cls}" data-i="${i}" role="radio" aria-checked="${done && st.picked === i}" ${done ? 'disabled' : ''}><span class="letter">${mark}</span><span>${esc(o)}</span></button>`;
         }).join('')}
       </div>
       ${done
-        ? `<div class="explain ${correct ? 'safe' : 'danger'}"><b>${correct ? '정답이에요! 감점 방어 완료' : `아깝다! 정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p></div>
+        ? `<div class="explain ${correct ? 'safe' : 'danger'}"><b>${correct ? '정답이에요! 감점 방어 완료' : `아깝다! 정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p>${!correct && src.mine ? `<p class="sm b">${icon('bookmark_added', 'fill')} 아래 오답 노트에 담았어요</p>` : ''}</div>
            <button class="btn ${correct ? 'green' : 'orange'} big" id="next">${icon(correct ? 'arrow_forward' : 'refresh')}${correct ? '다음 문제 풀기' : '새로운 문제 풀기'}</button>`
-        : `<button class="btn dkgreen big" id="submit" ${selected == null ? 'disabled' : ''}>${icon('verified', 'fill')}${s.rewarded?.[REWARD_KEY()] ? '정답 확인하기' : `정답 확인하고 +${REWARD.gems}💎 받기`}</button>`}
+        : ''}
     </section>
+
+    ${wrongNoteCard(session)}
 
     <section class="card tint stack">
       <div class="row wrap"><span class="chip orange">${icon('rocket_launch')}과제 제출 직전 긴급 케어</span></div>
@@ -142,18 +178,14 @@ export default {
       store.set({ quizToday: all });
     };
 
-    root.querySelectorAll('.option:not(:disabled)').forEach(b => b.addEventListener('click', () => {
-      selected = Number(b.dataset.i);
-      rerender();
-    }));
-
-    root.querySelector('#submit')?.addEventListener('click', () => {
-      if (selected == null) return;
+    // 1분 퀴즈: 보기를 누르면 바로 채점 (노트북 예상 문제처럼)
+    root.querySelectorAll('.option[data-i]:not(:disabled)').forEach(b => b.addEventListener('click', () => {
       const st = store.get().quizToday[key] || { offset: 0 };
+      if (st.picked != null) return;
       const q = dailyQuestion(MODE, today(), st.offset, src.list);
-      const picked = selected;
-      selected = null;
+      const picked = Number(b.dataset.i);
       saveQ({ picked });
+      if (picked !== q.answer && src.mine) addWrong(q, src.sources[q.source - 1]?.name); // 내 예상 문제를 틀리면 오답 노트로
       if (picked === q.answer) {
         const r = store.recordCorrect();
         const rewardedKey = store.get().rewarded?.[REWARD_KEY()];
@@ -169,14 +201,36 @@ export default {
         session.reward = { gems, xp, streak: r.streak, firstToday: r.firstToday, explain: q.explain };
       }
       rerender();
-    });
+    }));
 
     root.querySelector('#next')?.addEventListener('click', () => {
       const st = store.get().quizToday[key] || { offset: 0 };
       saveQ({ offset: st.offset + 1, picked: null });
-      selected = null;
       rerender();
     });
+
+    // 오답 노트: 다시 풀기 · 정답 보기 · 노트에서 빼기
+    const setPick = (id, v) => { session.wnPick = { ...(session.wnPick || {}), [id]: v }; rerender(); };
+    root.querySelectorAll('[data-wn]').forEach(b => b.addEventListener('click', () => {
+      const id = b.dataset.wn, w = wrongList().find(x => x.id === id);
+      if (w) setPick(id, pickState(session.wnPick?.[id], Number(b.dataset.k), w.answer));
+    }));
+    root.querySelectorAll('[data-wn-reveal]').forEach(b => b.addEventListener('click', () => {
+      const id = b.dataset.wnReveal;
+      setPick(id, { tried: [], ...(session.wnPick?.[id] || {}), revealed: true });
+    }));
+    root.querySelectorAll('[data-wn-retry]').forEach(b => b.addEventListener('click', () => setPick(b.dataset.wnRetry, undefined)));
+    root.querySelectorAll('[data-wn-del]').forEach(b => b.addEventListener('click', () => {
+      removeWrong(b.dataset.wnDel);
+      if (session.wnOpen === b.dataset.wnDel) session.wnOpen = null;
+      rerender();
+    }));
+    root.querySelectorAll('[data-wn-open]').forEach(b => b.addEventListener('click', () => {
+      const id = b.dataset.wnOpen;
+      session.wnOpen = session.wnOpen === id ? null : id;
+      rerender();
+    }));
+    root.querySelector('#wn-more')?.addEventListener('click', () => { session.wnAll = !session.wnAll; rerender(); });
 
     // 강의자료는 있는데 예상 문제가 아직 없거나 자료가 바뀌었으면 뒤에서 한 번 만들어 둔다 (프리미엄)
     const nbNow = loadNotebook();

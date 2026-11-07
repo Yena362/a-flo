@@ -14,6 +14,7 @@ const DEFAULT = {
   usage: {}, // { date: 'YYYY-MM-DD', count: 오늘 검사한 과제 수 }
   quizToday: {}, // { 'YYYY-MM-DD:assignment': { done: true, correct: true, offset: 0 } }
   history: [], // [{ date, title, score, grade }]
+  wrongNote: [], // 오답 노트 [{ id, q, options, answer, explain, from, misses, addedAt }] (wrong-note.js)
   draft: null, // 마지막 검사 입력
   updatedAt: 0, // 마지막으로 바뀐 시각(ms) — 클라우드와 합칠 때 어느 쪽이 최신인지 가리는 용도
 };

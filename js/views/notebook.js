@@ -9,6 +9,7 @@ import { readAssignmentFile } from '../docx.js';
 import { mountMindmap } from '../mindmap.js';
 import { canRecord, recState, startRec, stopRec, finishRec, onRec, elapsedMs, clock } from '../lecture-rec.js';
 import { study, loadNotebook, saveNotebook, sourcesKey, MAX_SOURCES, MAX_SOURCES_TEXT } from '../study.js';
+import { addWrong, pickState, retryHtml } from '../wrong-note.js';
 
 const TOOLS = {
   ask: ['forum', '질문하기'],
@@ -17,7 +18,6 @@ const TOOLS = {
   cards: ['style', '암기 카드'],
   map: ['account_tree', '개념 지도'],
 };
-const LETTERS = ['A', 'B', 'C', 'D'];
 const chars = s => s.replace(/\s+/g, ' ').trim().length;
 
 function srcChip(sources, n) {
@@ -122,20 +122,16 @@ function renderResult(tool, data, nb, session) {
   }
   if (tool === 'quiz') {
     const picks = session.nbQuiz || {};
-    const done = Object.keys(picks).length;
-    const right = data.questions.filter((q, i) => picks[i] === q.answer).length;
-    return `<div class="between"><span class="chip blue">${icon('quiz')}${data.questions.length}문제</span>${done ? `<span class="chip green">맞힌 문제 ${right}/${done}</span>` : ''}</div>
-      ${data.questions.map((q, i) => {
-        const picked = picks[i];
-        return `<section class="card quiz stack"><div class="between"><span class="chip xs">Q${i + 1}</span>${srcChip(nb.sources, q.source)}</div>
+    const tried = Object.values(picks).filter(p => p?.tried?.length);
+    const first = data.questions.filter((q, i) => picks[i]?.tried?.[0] === q.answer).length;
+    const fixed = data.questions.filter((q, i) => picks[i]?.solved && picks[i].tried.length > 1).length;
+    return `<div class="between wrap"><span class="chip blue">${icon('quiz')}${data.questions.length}문제</span>
+        <span class="row wrap">${tried.length ? `<span class="chip green">한 번에 맞힘 ${first}/${tried.length}</span>` : ''}${fixed ? `<span class="chip orange">${icon('replay')}다시 풀어 맞힘 ${fixed}</span>` : ''}</span></div>
+      <p class="xs muted b" style="margin:0">${icon('touch_app')} 보기를 누르면 바로 채점돼요. 틀리면 다시 고를 수 있고, 틀린 문제는 홈 오답 노트에 담겨요.</p>
+      ${data.questions.map((q, i) => `<section class="card quiz stack"><div class="between"><span class="chip xs">Q${i + 1}</span>${srcChip(nb.sources, q.source)}</div>
           <h3 class="h3">${esc(q.q)}</h3>
-          <div class="options">${q.options.map((o, k) => {
-            const cls = picked == null ? '' : k === q.answer ? 'right' : k === picked ? 'wrong' : '';
-            return `<button class="option ${cls}" data-q="${i}" data-k="${k}" ${picked != null ? 'disabled' : ''}><span class="letter">${picked != null && k === q.answer ? icon('check', 'fill') : LETTERS[k]}</span><span>${esc(o)}</span></button>`;
-          }).join('')}</div>
-          ${picked != null ? `<div class="explain ${picked === q.answer ? 'safe' : 'danger'}"><b>${picked === q.answer ? '정답!' : `정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p></div>` : ''}
-        </section>`;
-      }).join('')}`;
+          ${retryHtml(q, picks[i], { attr: `data-q="${i}"`, revealAttr: `data-reveal="${i}"`, savedNote: true })}
+        </section>`).join('')}`;
   }
   if (tool === 'cards') {
     const i = Math.min(session.nbCard || 0, data.cards.length - 1);
@@ -300,8 +296,21 @@ export default {
     root.querySelector('#clear-chat')?.addEventListener('click', () => { persist({ chat: [] }); rerender(); });
 
     root.querySelector('#make')?.addEventListener('click', () => run(session.nbTool || 'ask'));
+    // 예상 문제: 누르면 바로 채점, 틀리면 다시 고르기 + 오답 노트에 담기
+    const quizQ = i => nb().results?.quiz?.data?.questions?.[i];
     root.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => {
-      session.nbQuiz = { ...(session.nbQuiz || {}), [b.dataset.q]: Number(b.dataset.k) };
+      const i = b.dataset.q, k = Number(b.dataset.k), q = quizQ(i);
+      if (!q) return;
+      const prev = session.nbQuiz?.[i];
+      const next = pickState(prev, k, q.answer);
+      if (next === prev) return;
+      session.nbQuiz = { ...(session.nbQuiz || {}), [i]: next };
+      if (!next.solved && next.tried.length === 1) addWrong(q, nb().sources[q.source - 1]?.name); // 처음 틀렸을 때 한 번만 담기
+      rerender();
+    }));
+    root.querySelectorAll('[data-reveal]').forEach(b => b.addEventListener('click', () => {
+      const i = b.dataset.reveal;
+      session.nbQuiz = { ...(session.nbQuiz || {}), [i]: { ...session.nbQuiz[i], revealed: true } };
       rerender();
     }));
     root.querySelector('#flip')?.addEventListener('click', () => { session.nbFlip = !session.nbFlip; rerender(); });
