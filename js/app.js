@@ -1,6 +1,7 @@
 // 화면 전환(해시 라우터). 화면을 추가하려면 views/ 에 파일을 만들고 아래 routes에 등록하세요.
 // 첫 화면은 과제 검사. 하단 탭: 과제 검사(분석 진행 포함) · 점수 진단 · 교정 · 퀴즈(홈) · 노트북  (+ 마이)
 import * as store from './store.js';
+import { initCloud } from './cloud.js';
 import { analyze } from './analyzer.js';
 import { reapply } from './ai.js';
 import home from './views/home.js';
@@ -64,3 +65,9 @@ function render({ keepScroll = false } = {}) {
 
 window.addEventListener('hashchange', () => render());
 render();
+
+// 로그인 상태가 바뀌거나 클라우드 기록을 받아오면 기록을 보여 주는 화면만 다시 그려요.
+// (과제를 검사하거나 교정하는 중인 화면은 건드리지 않아요)
+initCloud(() => {
+  if (['my', 'home', 'premium'].includes(parse().name)) render({ keepScroll: true });
+}).catch(() => { /* 로그인 기능이 안 돼도 앱은 기기 저장으로 계속 동작해요 */ });

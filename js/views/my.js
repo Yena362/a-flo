@@ -2,6 +2,36 @@
 import { topbar, tabbar, icon, esc, toast, player } from '../ui.js';
 import { mascot, CHARACTERS } from '../mascot.js';
 import { isPremium, remaining, FREE_DAILY_FILES } from '../plan.js';
+import { isConfigured, getUser, signIn, signOut, clearCloud } from '../cloud.js';
+
+// 로그인 실패 이유를 알기 쉬운 말로
+const LOGIN_ERRORS = {
+  'auth/popup-blocked': '팝업이 막혔어요. 팝업을 허용하고 다시 눌러 주세요.',
+  'auth/unauthorized-domain': '이 주소는 로그인이 허용되지 않았어요. Firebase 콘솔의 승인된 도메인을 확인해 주세요.',
+  'auth/operation-not-allowed': 'Google 로그인이 아직 켜져 있지 않아요. Firebase 콘솔에서 켜 주세요.',
+  'auth/network-request-failed': '인터넷 연결을 확인해 주세요.',
+};
+
+// 기록 백업(Google 로그인) 카드. Firebase 설정이 비어 있으면 아무것도 보이지 않아요.
+function accountCard() {
+  if (!isConfigured()) return '';
+  const u = getUser();
+  if (u) {
+    return `<section class="card stack">
+      <div class="row">
+        ${u.photo ? `<img class="acct-photo" src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : icon('account_circle', 'fill')}
+        <div class="grow"><b>${esc(u.name || '내 계정')}</b><br><span class="xs muted b">${esc(u.email || '')}</span></div>
+      </div>
+      <p class="xs muted b" style="margin:0">${icon('cloud_done')} 기록이 내 계정에 백업돼요. 다른 기기에서 로그인하면 이어서 쓸 수 있어요. 과제 원문과 요금제는 이 기기에만 저장돼요.</p>
+      <button class="btn" id="logout">${icon('logout')}로그아웃</button>
+    </section>`;
+  }
+  return `<section class="card stack">
+    <h2 class="card-title">${icon('cloud_sync')}기록 백업</h2>
+    <p class="sm muted b" style="margin:0">Google로 로그인하면 연속 학습·다이아·경험치·검사 기록이 내 계정에 백업되고, 다른 기기에서도 이어 쓸 수 있어요.</p>
+    <button class="btn green" id="login">${icon('login')}Google로 로그인</button>
+  </section>`;
+}
 
 export default {
   render({ store }) {
@@ -16,6 +46,8 @@ export default {
       <div class="progress" role="progressbar" aria-label="레벨 경험치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${into}"><div class="bar" style="width:${into}%"></div></div>
       <p class="xs muted b" style="margin:0">퀴즈 정답 +30 XP · 과제 검사 완료 +30 XP · 3일 이상 연속이면 +20 XP 보너스. Lv.3에 열공, Lv.6에 마스터로 성장해요.</p>
     </section>
+
+    ${accountCard()}
 
     <a class="card stack promo" href="#/premium">
       <div class="between"><span class="chip ink">${icon('workspace_premium', 'fill')}${isPremium() ? '프리미엄 이용 중' : '무료 요금제'}</span>${icon('chevron_right')}</div>
@@ -42,7 +74,7 @@ export default {
     </section>
 
     <button class="btn red" id="reset">${icon('delete')}모든 기록 초기화</button>
-    <p class="xs muted b center" style="margin:0">입력한 과제와 기록은 이 브라우저에만 저장돼요.</p>
+    <p class="xs muted b center" style="margin:0">${getUser() ? '기록은 내 계정에 백업되고, 입력한 과제 원문은 이 브라우저에만 저장돼요.' : '입력한 과제와 기록은 이 브라우저에만 저장돼요.'}</p>
     ${tabbar('')}`;
   },
 
@@ -59,8 +91,28 @@ export default {
       toast(`'${gone?.title || '제목 없는 과제'}' 기록을 지웠어요`);
       rerender();
     }));
-    root.querySelector('#reset').addEventListener('click', () => {
-      if (!window.confirm('연속 학습, 다이아, 경험치, 검사 기록이 모두 지워져요. 계속할까요?')) return;
+    root.querySelector('#login')?.addEventListener('click', async e => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      try {
+        await signIn();
+        toast('로그인했어요! 기록이 백업돼요');
+      } catch (err) {
+        if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
+          toast(LOGIN_ERRORS[err?.code] || '로그인에 실패했어요. 잠시 뒤 다시 시도해 주세요.');
+        }
+        btn.disabled = false;
+      }
+    });
+    root.querySelector('#logout')?.addEventListener('click', async () => {
+      try { await signOut(); toast('로그아웃했어요'); } catch { toast('로그아웃에 실패했어요. 다시 시도해 주세요.'); }
+    });
+    root.querySelector('#reset').addEventListener('click', async () => {
+      const cloudNote = getUser() ? ' (내 계정에 백업된 기록도 함께 지워져요)' : '';
+      if (!window.confirm(`연속 학습, 다이아, 경험치, 검사 기록이 모두 지워져요${cloudNote}. 계속할까요?`)) return;
+      if (getUser()) {
+        try { await clearCloud(); } catch { toast('백업 기록을 지우지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
+      }
       localStorage.removeItem('aflo:v1');
       Object.assign(session, { input: null, result: null, ai: null, baseScore: null });
       location.hash = '#/check';

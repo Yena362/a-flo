@@ -518,3 +518,6 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .recent { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px; }
 .recent .grow { min-width: 0; }
 .snip { font-size: 13px; font-weight: 700; background: #FFF4D6; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+
+/* 마이: 로그인한 계정 사진 */
+.acct-photo { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); background: var(--tint); }
