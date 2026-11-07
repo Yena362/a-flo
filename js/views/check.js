@@ -59,6 +59,7 @@ export default {
     return `${topbar()}
     <div class="row wrap"><span class="chip ink">STEP 1 &amp; 3</span><span class="chip green">과제 &amp; 교수 맞춤 분석</span>
       ${isPremium() ? `<span class="chip ink">${icon('workspace_premium', 'fill')}프리미엄 · 무제한</span>` : `<a class="chip ${remaining() ? 'blue' : 'red'}" href="#/premium">${icon('confirmation_number')}오늘 무료 검사 ${remaining()}/${FREE_DAILY_FILES}회 남음</a>`}</div>
+    ${!session.phase && s.history[0] && d.text?.trim() ? `<a class="card recent" href="#/result">${icon('history')}<div class="grow"><div class="xs muted b">최근 검사 · ${esc(s.history[0].date)}</div><b class="ellipsis">${esc(s.history[0].title || '제목 없는 과제')}</b></div><span class="chip green">${esc(s.history[0].grade)} · ${s.history[0].score}점</span>${icon('chevron_right')}</a>` : ''}
     ${mascotTalk({ mood: 'quiz', small: true, html: '"어떤 교수님 수업이야? 스타일을 알려주면 감점 요소를 꼼꼼하게 걸러낼게!"<p class="sm muted" style="margin:6px 0 0">과제 파일과 교수님 취향을 입력하면 AI가 분석해요.</p>' })}
 
     <form class="stack" id="form" novalidate style="gap:18px">
@@ -154,7 +155,7 @@ export default {
         loaded = { fileName: '', fileKind: '' };
         const d = store.get().draft;
         if (d) store.set({ draft: { ...d, text: '', fileName: '', fileKind: '', title: form.title.value } });
-        Object.assign(session, { input: null, result: null, ai: null, aiError: null, baseScore: null, phase: null });
+        Object.assign(session, { input: null, result: null, ai: null, aiError: null, baseScore: null, edits: [], phase: null });
         root.querySelector('#scan')?.remove();
         slot.innerHTML = `<div class="file removed">${icon('delete', 'fill')}<div class="grow"><b class="ellipsis">${esc(backup.fileName || backup.title || '과제')}</b><div class="sm b">파일과 본문을 지웠어요.</div></div><button type="button" class="btn sm" data-act="undo">${icon('undo')}되돌리기</button></div>`;
         const det = form.querySelector('details.paste');
@@ -249,7 +250,7 @@ export default {
       };
       store.set({ draft: input });
       recordAnalysis();
-      Object.assign(session, { input, result: null, ai: null, aiError: null, baseScore: null, ignored: new Set(), phase: 'running', startedAt: performance.now() });
+      Object.assign(session, { input, result: null, ai: null, aiError: null, baseScore: null, ignored: new Set(), edits: [], selected: null, phase: 'running', startedAt: performance.now() });
       session.job = Promise.all([analyzeWithAI(input), new Promise(r => setTimeout(r, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 600 : MIN_MS))])
         .then(([out]) => {
           Object.assign(session, { result: out.result, ai: out.ai, aiError: out.error, baseScore: out.result.score, phase: 'done' });

@@ -63,7 +63,7 @@ export default {
       if (!window.confirm('연속 학습, 다이아, 경험치, 검사 기록이 모두 지워져요. 계속할까요?')) return;
       localStorage.removeItem('aflo:v1');
       Object.assign(session, { input: null, result: null, ai: null, baseScore: null });
-      location.hash = '#/home';
+      location.hash = '#/check';
       location.reload();
     });
   },

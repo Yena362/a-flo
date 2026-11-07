@@ -66,6 +66,33 @@ function issueCard(sel, issues, input) {
   </section>`;
 }
 
+// 한 번에 고쳐도 안전한 항목: 규칙 엔진이 만든 맞춤법·띄어쓰기·어미·참고문헌 형식
+// (출처 자리 표시를 넣는 수정과 AI 내용 수정은 하나씩 확인하도록 제외)
+const BULK_SKIP = new Set(['출처 없는 직접 인용', '근거 없는 수치']);
+export function bulkFixable(issues) {
+  const picked = [];
+  for (const i of issues) {
+    if (i.fix == null || i.start < 0 || i.source === 'ai' || BULK_SKIP.has(i.title)) continue;
+    if (picked.some(p => i.start < p.end && i.end > p.start)) continue;
+    picked.push(i);
+  }
+  return picked;
+}
+export function applyMany(text, picked) {
+  return [...picked].sort((a, b) => b.start - a.start).reduce((t, i) => applyFix(t, i), text);
+}
+
+function historyCard(edits) {
+  if (!edits?.length) return '';
+  const last = edits.slice(-6).reverse();
+  return `<section class="card stack">
+    <div class="between"><h2 class="card-title">${icon('history')}수정 기록 ${edits.length}건</h2><button class="btn sm" id="undo">${icon('undo')}되돌리기</button></div>
+    <ul class="edit-log">${last.map(e => `<li><div class="between sm"><b>${esc(e.title)}</b><span class="${e.after >= e.before ? 't-green' : 't-red'} b">${e.before} → ${e.after}점</span></div>
+      ${e.old != null ? `<div class="diff"><del>${esc(e.old)}</del><ins>${esc(e.fix)}</ins></div>` : ''}</li>`).join('')}</ul>
+    ${edits.length > 6 ? `<p class="xs muted b" style="margin:0">최근 6건만 보여요</p>` : ''}
+  </section>`;
+}
+
 function download(name, text) {
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const a = document.createElement('a');
@@ -96,6 +123,7 @@ export default {
     const warnings = issues.length - dangers;
     const base = session.baseScore ?? r.score;
     const diff = r.score - base;
+    const bulk = bulkFixable(issues);
 
     const docPane = `<section class="card pane-doc stack" aria-label="과제 본문">
       <div class="between"><h2 class="card-title">${icon('edit_note')}과제 본문 실시간 검토</h2><span class="chip blue xs">${paragraphs}문단 · 통과 ${passed}</span></div>
@@ -119,7 +147,9 @@ export default {
           ${diff ? `<div class="was">${base}점</div>` : ''}<div class="now">${r.score}점 (${r.grade})</div></div>
         <div class="gain">성적 상승<b>${diff >= 0 ? '+' : ''}${diff}점</b></div>
       </section>
-      <button class="btn lilac big" id="download">${icon('download')}수정본 다운로드 (.txt)</button>`;
+      ${historyCard(session.edits)}
+      <div class="two"><button class="btn lilac big" id="download">${icon('download')}수정본 받기 (.txt)</button><button class="btn big" id="copy">${icon('content_copy')}전체 복사</button></div>
+      <p class="xs muted b" style="margin:-4px 0 0">복사해서 한글·워드 원본에 붙여 넣으면 서식을 지키면서 고칠 수 있어요.</p>`;
 
     const empty = `<section class="card empty-state">${mascot(store.get().mascot, 'cheer', 110, 'bob')}<h2 class="h2">고칠 곳이 없어요!</h2><p class="muted b" style="margin:0">교수님 요구사항을 모두 지켰어요. 이대로 제출해도 좋아요.</p></section>`;
     const sidePane = `<div class="pane-side">${sel ? issueCard(sel, issues, input) : empty}${extras}</div>`;
@@ -132,6 +162,7 @@ export default {
     return `${topbar()}
     <section class="card stack">
       <div class="doc-head">${icon('description', 'fill')}<h1>${esc(input.title || '제목 없는 과제')}</h1></div>
+      ${bulk.length >= 2 ? `<button class="btn blue" id="bulk">${icon('auto_fix_high')}맞춤법·형식 ${bulk.length}건 한 번에 고치기</button>` : ''}
       <div class="counts"><span class="chip red"><span class="dot danger"></span>위험 ${dangers}</span><span class="chip orange"><span class="dot warning"></span>주의 ${warnings}</span><span class="chip blue"><span class="dot safe"></span>통과 ${passed}문단</span><span class="chip xs">${r.source === 'ai' ? 'AI 채점' : '기본 채점'}</span></div>
       ${mascotTalk({ mood: MOOD[r.mood], small: true, badge: false, tint: true, html: esc(r.message) })}
     </section>
@@ -186,7 +217,10 @@ export default {
       const issue = current();
       if (!issue) return;
       const before = session.result.score;
+      const old = text().slice(issue.start, issue.end);
+      const prev = text();
       const r = session.reanalyze(applyFix(text(), issue));
+      session.edits = [...(session.edits || []), { title: issue.title, old: issue.start >= 0 ? old : null, fix: issue.fix, prev, before, after: r.score }];
       session.selected = null; session.sheet = false;
       toast(r.score > before ? `적용 완료! ${before} → ${r.score}점` : '적용 완료!');
       rerender();
@@ -207,12 +241,40 @@ export default {
       if (ta) { ta.scrollIntoView({ block: 'center' }); ta.focus(); }
     }));
     root.querySelector('#save-edit')?.addEventListener('click', () => {
-      session.reanalyze(root.querySelector('#doc-edit').value);
+      const prev = text();
+      const before = session.result.score;
+      const r = session.reanalyze(root.querySelector('#doc-edit').value);
+      if (prev !== text()) session.edits = [...(session.edits || []), { title: '직접 수정', old: null, prev, before, after: r.score }];
       session.editing = false; session.selected = null;
       rerender();
     });
     root.querySelector('#cancel-edit')?.addEventListener('click', () => { session.editing = false; rerender(); });
     root.querySelector('#download')?.addEventListener('click', () => download(session.input.title, text()));
+    root.querySelector('#copy')?.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(text()); toast('수정본 전체를 복사했어요'); }
+      catch { toast('복사하지 못했어요. 다운로드를 이용해 주세요.'); }
+    });
+    root.querySelector('#bulk')?.addEventListener('click', () => {
+      const shown = session.result.issues.filter(i => !session.ignored.has(keyOf(i, text())));
+      const picked = bulkFixable(shown);
+      if (!picked.length) return;
+      const before = session.result.score;
+      const prev = text();
+      const r = session.reanalyze(applyMany(prev, picked));
+      session.edits = [...(session.edits || []), { title: `한 번에 고치기 ${picked.length}건`, old: null, prev, before, after: r.score }];
+      session.selected = null; session.sheet = false;
+      toast(`${picked.length}건을 고쳤어요! ${before} → ${r.score}점`);
+      rerender();
+    });
+    root.querySelector('#undo')?.addEventListener('click', () => {
+      const last = session.edits?.[session.edits.length - 1];
+      if (!last) return;
+      session.edits = session.edits.slice(0, -1);
+      session.reanalyze(last.prev);
+      session.selected = null;
+      toast(`되돌렸어요 (${last.title})`);
+      rerender();
+    });
 
     const onKey = e => { if (e.key === 'Escape' && session.sheet) closeSheet(); };
     document.addEventListener('keydown', onKey);
