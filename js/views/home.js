@@ -93,7 +93,7 @@ export default {
     </section>
 
     <a class="card stack promo" href="${isPremium() ? '#/notebook' : '#/premium'}">
-      <div class="between"><span class="chip ink">${icon('workspace_premium', 'fill')}PREMIUM</span><span class="sm b">${isPremium() ? '이용 중' : `오늘 무료 검사 ${remaining()}/${FREE_DAILY_FILES}`}</span></div>
+      <div class="between"><span class="chip ink">${icon('workspace_premium', 'fill')}PREMIUM</span><span class="sm b">${isPremium() ? '이용 중' : `오늘 무료 검사 ${remaining()}/${FREE_DAILY_FILES}회 남음`}</span></div>
       <h2 class="h3">${isPremium() ? '자료 노트북 열기' : '시험 기간엔 프리미엄으로'}</h2>
       <p class="sm b" style="margin:0">과제 검사 무제한 · 내 강의자료로 답하는 노트북 · 요약·예상 문제·암기 카드·개념 지도</p>
     </a>
