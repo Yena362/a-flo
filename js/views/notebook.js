@@ -52,7 +52,7 @@ function sourcesCard(nb, session) {
       <label class="btn sm" for="nb-file">${icon('add')}파일 추가</label>
       <button class="btn sm" id="nb-paste-toggle">${icon('content_paste')}텍스트 붙여넣기</button>
     </div>
-    <input type="file" id="nb-file" class="sr" multiple accept=".hwp,.hwpx,.pdf,.docx,.txt,.md,application/pdf,text/plain">
+    <input type="file" id="nb-file" class="sr" multiple accept=".hwp,.hwpx,.pdf,.docx,.txt,.md,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwp,application/vnd.hancom.hwpx,application/hwp+zip,application/octet-stream,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
     ${session.nbPaste ? `<div class="stack" style="gap:8px">
       <input type="text" id="nb-paste-name" placeholder="자료 이름 (예: 3주차 필기)">
       <textarea id="nb-paste-text" rows="5" placeholder="필기·강의 내용을 붙여 넣으세요."></textarea>
