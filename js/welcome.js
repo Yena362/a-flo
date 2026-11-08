@@ -1,5 +1,5 @@
 // 앱을 열 때마다(첫 화면에서) 무료 vs 프리미엄 차이를 보여 주는 안내 창
-// 닫으면 그 방문 동안은 다시 뜨지 않고, 다음에 앱을 열면 다시 떠요. 프리미엄 이용자에게는 띄우지 않아요.
+// 닫으면 그 방문 동안은 다시 뜨지 않고, 다음에 앱을 열면 다시 떠요. (프리미엄 이용자는 문구만 달라요)
 // (요금제 비교 표는 프리미엄 화면과 함께 사용)
 import { icon, esc } from './ui.js';
 import { FEATURES, FREE_DAILY_FILES, isPremium } from './plan.js';
@@ -17,17 +17,18 @@ export function planTable(label = '요금제 비교') {
 }
 
 export function showWelcome() {
-  if (isPremium() || document.querySelector('.welcome-wash')) return;
+  if (document.querySelector('.welcome-wash')) return;
+  const pro = isPremium(); // 프리미엄 이용자에게는 문구만 바꿔서 보여 줘요
   const wash = document.createElement('div');
   wash.className = 'modal-wash welcome-wash';
   wash.innerHTML = `<div class="modal welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
     <button class="welcome-x" type="button" data-close aria-label="안내 창 닫기">${icon('close')}</button>
     <img class="welcome-logo" src="assets/logo/a-flo-logo.svg" alt="A-flo 에이플로" width="150" height="50">
-    <h2 class="h2" id="welcome-title">무료로 바로 시작할 수 있어요</h2>
-    <p class="muted b" style="margin:0">과제 검사는 하루 ${FREE_DAILY_FILES}개까지 무료예요. 시험 기간엔 프리미엄으로 내 강의자료까지 공부해요.</p>
+    <h2 class="h2" id="welcome-title">${pro ? '프리미엄 이용 중이에요' : '무료로 바로 시작할 수 있어요'}</h2>
+    <p class="muted b" style="margin:0">${pro ? '과제 검사 무제한, 자료 노트북과 시험 대비 팩까지 모두 쓸 수 있어요.' : `과제 검사는 하루 ${FREE_DAILY_FILES}개까지 무료예요. 시험 기간엔 프리미엄으로 내 강의자료까지 공부해요.`}</p>
     ${planTable('무료와 프리미엄 비교')}
-    <button class="btn green big" type="button" data-close>${icon('rocket_launch')}무료로 시작하기</button>
-    <a class="link sm" href="#/premium" data-close>프리미엄 자세히 보기</a>
+    <button class="btn green big" type="button" data-close>${icon('rocket_launch')}${pro ? '시작하기' : '무료로 시작하기'}</button>
+    <a class="link sm" href="#/premium" data-close>${pro ? '내 요금제 보기' : '프리미엄 자세히 보기'}</a>
   </div>`;
   document.body.appendChild(wash);
   const prevFocus = document.activeElement;
