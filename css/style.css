@@ -569,13 +569,8 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
   body { padding-left: 248px; }
   .view { max-width: 1240px; padding: 0 32px 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; align-items: start; }
   .view > .topbar, .view > .seg, .view > .editor-grid, .view > .empty-state, .view > .hero, .view > .wide, .view > .sticky-cta, .view > .ask-bar { grid-column: 1 / -1; }
-  .view > .row, .view > .between, .view > .recent, .view > .scan, .view > .all-issues { grid-column: 1 / -1; }
-  .view-editor, .view-notebook { grid-template-columns: minmax(0, 1fr); }
-  /* 과제 검사: 왼쪽 = 원문 업로드, 오른쪽 = 교수님 성향·지시사항 */
-  .view-check #form { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; align-items: start; }
-  .view-check #form > section:nth-of-type(3) { grid-column: 1; grid-row: 1 / span 2; }
-  .view-check #form > section:nth-of-type(1), .view-check #form > section:nth-of-type(2) { grid-column: 2; }
-  .view-check #form > .sticky-cta { grid-column: 1 / -1; }
+  .view > .page-head, .view > .check-layout, .view > .row, .view > .between, .view > .recent, .view > .scan, .view > .all-issues { grid-column: 1 / -1; }
+  .view-editor, .view-notebook, .view-check { grid-template-columns: minmax(0, 1fr); }
   .topbar { margin: 0 -32px; padding: 14px 32px; }
   .topbar .avatar { display: none; }
   .topbar .pills { margin: 0 0 0 auto; }
@@ -596,3 +591,42 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
   .pane-side { flex: 1 1 400px; position: sticky; top: 92px; max-height: calc(100vh - 108px); overflow-y: auto; padding: 0 4px 8px; }
 }
 .wrong-note { scroll-margin-top: 96px; }
+
+/* ===== 과제 검사 (사용자 흐름: ① 과제 → ② 스타일 → ③ 지시사항 → 검사) ===== */
+.page-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.page-head .hero-avatar.sm { width: 72px; height: 72px; }
+.page-head .grow { min-width: 200px; }
+.check-layout { display: flex; flex-direction: column; gap: 16px; }
+.check-steps { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.step-head { display: flex; gap: 12px; align-items: flex-start; }
+.step-no { width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-weight: 900; flex-shrink: 0; }
+.need { margin-left: 8px; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #EEF1F6; color: var(--muted); }
+.need.req { background: var(--red-bg); color: var(--red-ink); }
+.big-drop { min-height: 112px; border-color: #A5B4FC; background: #F5F6FF; }
+.big-drop .ms { font-size: 40px; color: var(--green); }
+.tag-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.tag-card { display: flex; align-items: center; gap: 10px; text-align: left; border-radius: 16px; padding: 10px 14px; min-height: 64px; }
+.tag-card .grow { display: flex; flex-direction: column; gap: 2px; }
+.tag-card > .ms:first-child { color: var(--green-dark); }
+.tag-card .tick { color: var(--green); visibility: hidden; }
+.tag-card[aria-pressed="true"] .tick { visibility: visible; }
+.ready-card { display: none; }
+.ready-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-weight: 800; font-size: 15px; }
+.ready-list li { display: flex; gap: 8px; align-items: center; }
+.ready-list .ok .ms { color: var(--green); }
+.ready-list .todo { color: var(--red-ink); }
+.ready-list .opt { color: var(--muted); } .ready-list .opt .ms { color: #A9B4C4; }
+.ready-get { border-top: 2px solid #EEF1F6; padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.ready-get .ms { font-size: 18px; color: var(--green-dark); }
+/* 휴대폰: 검사 버튼이 하단 탭 위에 붙어 따라와요 */
+.check-side { display: contents; }
+.cta-bar { position: sticky; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 12; display: flex; flex-direction: column; gap: 6px; padding-top: 10px; background: linear-gradient(rgba(245, 248, 255, 0), var(--bg) 30%); }
+.cta-status { margin: 0; color: var(--muted); text-align: center; }
+@media (min-width: 1024px) {
+  /* 과제 검사: 왼쪽 = 입력 단계, 오른쪽 = 준비 상태 + 검사 버튼 (스크롤해도 따라와요) */
+  .check-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+  .check-side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 92px; }
+  .check-side .ready-card { display: flex; }
+  .check-side .cta-bar { position: static; background: none; padding: 0; }
+}
+@media (max-width: 899px) { .drag-hint { display: none; } }
