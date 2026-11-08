@@ -213,6 +213,11 @@ details.paste summary { cursor: pointer; font-weight: 800; padding: 6px 0; }
 .ratebar .z { border-radius: 999px; }
 .ratebar .z.safe { background: #9ED9B8; } .ratebar .z.warning { background: #FFB0CD; } .ratebar .z.danger { background: #FF8FB4; }
 .ratebar .needle { position: absolute; top: -4px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); }
+/* 넓은 화면에서 나란히 놓이는 점수 카드 · 표절 의심률 카드 높이 맞추기 */
+@media (min-width: 1024px) {
+  .view-result > .score-card, .view-result > .plag-card { align-self: stretch; }
+  .view-result > .plag-card { justify-content: space-between; }
+}
 .ratelegend { display: grid; grid-template-columns: 25fr 25fr 50fr; font-size: 13px; font-weight: 800; }
 .rub { display: flex; flex-direction: column; gap: 10px; }
 .rub-head { display: flex; align-items: center; gap: 12px; }

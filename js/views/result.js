@@ -26,7 +26,7 @@ export default {
     <div class="print-only print-head"><b>에이플로 과제 검사 리포트</b><span>${esc(title)} · ${today} · ${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span></div>
     ${mascotTalk({ mood: MOOD[r.mood], html: `"${esc(r.message)}"`, tint: true })}
 
-    <section class="card tint stack" style="gap:18px">
+    <section class="card tint stack score-card" style="gap:18px">
       <div class="between wrap">
         ${streak ? `<span class="chip orange">${icon('local_fire_department', 'fill')}${streak}일 연속 방어 중!</span>` : '<span></span>'}
         <span class="chip ${r.source === 'ai' ? 'green' : ''}" title="${esc(session.aiError || '')}">${icon(r.source === 'ai' ? 'auto_awesome' : 'rule')}${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span>
@@ -47,14 +47,14 @@ export default {
       </div>
     </section>
 
-    <section class="card stack">
+    <section class="card stack plag-card">
       <div class="between"><h2 class="card-title">${icon('policy', 'fill')}AI·표절 의심률</h2><span class="sev ${r.plagiarism.level}"><span class="dot ${r.plagiarism.level}"></span>${LEVEL_WORD[r.plagiarism.level]} 단계</span></div>
       <div class="between wrap"><b style="font-size:34px;font-weight:900">${r.plagiarism.rate}%</b><span class="sm muted b">검사 완료 (${r.stats.chars.toLocaleString()}자 기준)</span></div>
       <div class="ratebar" role="img" aria-label="의심률 ${r.plagiarism.rate}%">
         <span class="z safe"></span><span class="z warning"></span><span class="z danger"></span>
         <span class="needle" style="left:${Math.min(98, Math.max(2, r.plagiarism.rate * 2.5))}%"></span>
       </div>
-      <div class="ratelegend"><span class="t-blue">● 안전 (0~10%)</span><span style="color:#B03A6B">● 주의 (11~20%)</span><span class="t-red">● 위험 (21%+)</span></div>
+      <div class="ratelegend"><span class="t-green">● 안전 (0~10%)</span><span style="color:#B03A6B">● 주의 (11~20%)</span><span class="t-red">● 위험 (21%+)</span></div>
       <p class="xs muted b" style="margin:0">출처 없는 인용·AI 문체 표현으로 계산한 예상치예요. 실제 표절 검사기 결과와 다를 수 있어요.</p>
     </section>
 
