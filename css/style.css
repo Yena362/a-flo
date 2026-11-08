@@ -107,10 +107,10 @@ h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -0.02em; }
 
 /* 마스코트 · 말풍선 */
 .mascot { position: relative; display: inline-block; flex-shrink: 0; }
-.mascot img, .mascot svg { width: 100%; height: 100%; display: block; }
-.mascot img { display: none; }
-.mascot.png img { display: block; }
-.mascot.png svg { display: none; }
+.mascot img { width: 100%; height: 100%; display: block; }
+.mascot .m-png { display: none; }
+.mascot.png .m-png { display: block; }
+.mascot.png .m-svg { display: none; }
 .bob { animation: bob 2.4s ease-in-out infinite; }
 .hero { display: flex; align-items: center; gap: 14px; }
 .hero-avatar { position: relative; flex-shrink: 0; width: 116px; height: 116px; border-radius: 50%; background: radial-gradient(circle at 50% 45%, #FFF6CF 0 58%, #FFE680 59% 100%); box-shadow: 0 0 0 6px #FFE6DC, 0 0 24px 6px rgba(242, 88, 58, .28); display: grid; place-items: center; }

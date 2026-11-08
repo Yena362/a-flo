@@ -117,11 +117,24 @@ export function mascotSvg(key = 'chick', mood = 'default') {
   return `<svg viewBox="0 0 200 200" aria-hidden="true"><g transform="translate(100 104) scale(${s}) translate(-100 -104)">${back}${body(key, o.lvl || 2)}${ck}${eyes(p, o.eyes || 'open')}${g}${mouth(p, o.mouth || 'n')}${front}</g></svg>`;
 }
 
+// 그린 캐릭터(SVG)를 화면에 바로 넣지 않고 <img> 이미지로 넣어요.
+// 안드로이드 브라우저의 자동 다크 모드가 화면에 직접 그린 그림은 색을 하나하나 뒤집어 캐릭터가 깨지는데,
+// 이미지는 건드리지 않기 때문이에요.
+const svgSrcCache = new Map();
+function mascotSrc(key, mood) {
+  const k = `${key}/${mood}`;
+  if (!svgSrcCache.has(k)) {
+    const svg = mascotSvg(key, mood).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+    svgSrcCache.set(k, `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
+  }
+  return svgSrcCache.get(k);
+}
+
 // SVG를 먼저 보여 주고, PNG가 실제로 불러와지면 그때 PNG로 바꿔요.
 // (느린 휴대폰 인터넷에서도 PNG를 기다리는 동안 빈 원이 보이지 않게)
 export function mascot(key, mood = 'default', size = 96, extraClass = '') {
   const label = `${CHARACTERS[key]?.name || ''} ${MOODS[mood] || ''}`.trim();
-  return `<span class="mascot ${extraClass}" role="img" aria-label="${label}" style="width:${size}px;height:${size}px"><img src="assets/mascot/${key}/${mood}.png" alt="" decoding="async" onload="this.parentNode.classList.add('png')" onerror="this.remove()">${mascotSvg(key, mood)}</span>`;
+  return `<span class="mascot ${extraClass}" role="img" aria-label="${label}" style="width:${size}px;height:${size}px"><img class="m-png" src="assets/mascot/${key}/${mood}.png" alt="" decoding="async" onload="this.parentNode.classList.add('png')" onerror="this.remove()"><img class="m-svg" src="${mascotSrc(key, mood)}" alt="" draggable="false"></span>`;
 }
 
 // 사용자 레벨(경험치) → 캐릭터 성장 단계 1~3
