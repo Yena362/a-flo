@@ -38,7 +38,7 @@ function renderLines(text, issues, selectedId) {
     const starts = issues.filter(i => i.start >= ls && i.start <= le);
     const worst = starts.some(i => i.severity === 'danger') ? 'danger' : starts.length ? 'warning' : '';
     if (!starts.length) passed++;
-    const notes = starts.slice(0, 2).map(i => `<div class="note ${i.severity}">${icon(i.severity === 'danger' ? 'error' : 'warning', 'fill')}<span>${SEVERITY[i.severity]}: ${esc(i.title)} (-${i.gain}점)</span><button class="fixit" data-select="${i.id}">${i.severity === 'danger' ? '수정 필요' : '보기'}</button></div>`).join('');
+    const notes = starts.slice(0, 2).map(i => `<div class="note ${i.severity}">${icon(i.severity === 'danger' ? 'error' : 'warning', 'fill')}<span>${SEVERITY[i.severity]}: ${esc(i.title)} <span class="nowrap">(-${i.gain}점)</span></span><button class="fixit" data-select="${i.id}">${i.severity === 'danger' ? '수정 필요' : '보기'}</button></div>`).join('');
     out.push(`<div class="line ${worst ? `has-${worst}` : ''}"><span class="no">${no}</span><div><div class="tx">${html}</div>${notes}</div></div>`);
   }
   return { html: out.join(''), paragraphs: no, passed };

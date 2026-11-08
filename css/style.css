@@ -372,7 +372,8 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
   .steps li { padding: 9px 10px; font-size: 15px; }
 }
 @media (max-width: 360px) {
-  .pill { padding: 4px 7px; font-size: 13px; }
+  .pill { padding: 4px 6px; font-size: 13px; }
+  .topbar { gap: 4px; }
   .topbar .avatar { display: none; }
   .grid-3 { gap: 6px; }
 }
@@ -464,8 +465,21 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 @media (max-width: 430px) {
   .tabbar a { font-size: 11px; } .tabbar a .ms { font-size: 26px; }
   .plan-row { grid-template-columns: minmax(0, 1fr) 58px 70px; font-size: 13px; }
+  /* 시작 안내 창: 표 첫 칸이 좁아 설명이 한두 단어씩 끊기지 않게 여백·칸을 줄여요 */
+  .modal.welcome { padding: 20px 14px; }
+  .modal.welcome .plan-table { padding: 2px 8px; }
+  .modal.welcome .plan-row { grid-template-columns: minmax(0, 1fr) 50px 58px; gap: 6px; }
+  .modal.welcome .plan-row .feat { gap: 6px; }
+  .modal.welcome .plan-row .feat > .ms { font-size: 20px; }
+  .plan-row .feat b, .plan-row .feat .xs { word-break: keep-all; }
+  /* 표절 범례: 칸이 좁으면 "(0~10%)"만 아랫줄로 밀려서, 한 줄씩 붙여 놓고 줄바꿈은 항목 단위로 */
+  .ratelegend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; }
+  .ratelegend span { white-space: nowrap; }
   .tool { font-size: 11.5px; min-height: 58px; }
   .flash-text { font-size: 20px; }
+}
+@media (max-width: 360px) {
+  .plan-row, .modal.welcome .plan-row { grid-template-columns: minmax(0, 1fr) 50px 56px; gap: 6px; }
 }
 
 /* ===== 펼쳐지는 마인드맵 ===== */
@@ -663,7 +677,8 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
 .ready-get .ms { font-size: 18px; color: var(--green-dark); }
 /* 휴대폰: 검사 버튼이 하단 탭 위에 붙어 따라와요 */
 .check-side { display: contents; }
-.cta-bar { position: sticky; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 12; display: flex; flex-direction: column; gap: 6px; padding-top: 10px; background: linear-gradient(rgba(255, 248, 241, 0), var(--bg) 30%); }
+.cta-bar { position: sticky; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 12; display: flex; flex-direction: column; gap: 6px; padding-top: 22px; background: linear-gradient(rgba(255, 248, 241, 0), var(--bg) 18px); } /* 안내 문구 뒤가 비치지 않게 18px부터 불투명 */
+.nowrap { white-space: nowrap; }
 .cta-status { margin: 0; color: var(--muted); text-align: center; }
 @media (min-width: 1024px) {
   /* 과제 검사: 왼쪽 = 입력 단계, 오른쪽 = 준비 상태 + 검사 버튼 (스크롤해도 따라와요) */
