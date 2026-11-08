@@ -92,7 +92,7 @@ function render({ keepScroll = false } = {}) {
 window.addEventListener('hashchange', () => render());
 initA11y();
 render();
-showWelcome(); // 맨 처음 방문이면 무료 vs 프리미엄 안내 창
+showWelcome(); // 앱을 열 때마다 무료 vs 프리미엄 안내 창 (화면 이동 때는 다시 안 떠요)
 
 // 로그인 상태가 바뀌거나 클라우드 기록을 받아오면 기록을 보여 주는 화면만 다시 그려요.
 // (과제를 검사하거나 교정하는 중인 화면은 건드리지 않아요)

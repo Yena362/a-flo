@@ -1,8 +1,8 @@
-// 맨 처음 방문했을 때 한 번: 무료 vs 프리미엄 차이를 보여 주는 안내 창
-// 닫으면 store의 welcomed가 true가 되어 다시 뜨지 않아요. (요금제 비교 표는 프리미엄 화면과 함께 사용)
-import * as store from './store.js';
+// 앱을 열 때마다(첫 화면에서) 무료 vs 프리미엄 차이를 보여 주는 안내 창
+// 닫으면 그 방문 동안은 다시 뜨지 않고, 다음에 앱을 열면 다시 떠요. 프리미엄 이용자에게는 띄우지 않아요.
+// (요금제 비교 표는 프리미엄 화면과 함께 사용)
 import { icon, esc } from './ui.js';
-import { FEATURES, FREE_DAILY_FILES } from './plan.js';
+import { FEATURES, FREE_DAILY_FILES, isPremium } from './plan.js';
 
 const cell = v => (v === true ? icon('check_circle', 'fill t-green') : v === false ? icon('lock', 't-muted') : `<b>${esc(v)}</b>`);
 
@@ -17,7 +17,7 @@ export function planTable(label = '요금제 비교') {
 }
 
 export function showWelcome() {
-  if (store.get().welcomed || document.querySelector('.welcome-wash')) return;
+  if (isPremium() || document.querySelector('.welcome-wash')) return;
   const wash = document.createElement('div');
   wash.className = 'modal-wash welcome-wash';
   wash.innerHTML = `<div class="modal welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
@@ -33,7 +33,6 @@ export function showWelcome() {
   const prevFocus = document.activeElement;
 
   const close = () => {
-    store.set({ welcomed: true });
     document.removeEventListener('keydown', onKey);
     wash.remove();
     if (prevFocus instanceof HTMLElement) prevFocus.focus();
