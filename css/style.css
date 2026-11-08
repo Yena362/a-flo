@@ -570,7 +570,9 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
   .view { max-width: 1240px; padding: 0 32px 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; align-items: start; }
   .view > .topbar, .view > .seg, .view > .editor-grid, .view > .empty-state, .view > .hero, .view > .wide, .view > .sticky-cta, .view > .ask-bar { grid-column: 1 / -1; }
   .view > .page-head, .view > .check-layout, .view > .row, .view > .between, .view > .recent, .view > .scan, .view > .all-issues { grid-column: 1 / -1; }
-  .view-editor, .view-notebook, .view-check { grid-template-columns: minmax(0, 1fr); }
+  .view-editor, .view-notebook, .view-check, .view-home { grid-template-columns: minmax(0, 1fr); }
+  /* 1분 퀴즈: 한 줄씩 세로로 (너무 넓으면 읽기 힘들어 폭 제한) */
+  .view-home { max-width: 960px; }
   .topbar { margin: 0 -32px; padding: 14px 32px; }
   .topbar .avatar { display: none; }
   .topbar .pills { margin: 0 0 0 auto; }
