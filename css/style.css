@@ -1,6 +1,7 @@
 /* 에이플로 — "Vibrant Academic Arcade" 디자인 시스템 (docs/design/DESIGN.md)
    색·글꼴·버튼 규칙을 바꿀 때는 아래 변수부터 고치세요. */
 :root {
+  color-scheme: only light;   /* 휴대폰 브라우저의 자동 다크 모드가 캐릭터·로고 색을 뒤집지 않게 */
   --bg: #FFF8F1;
   --card: #FFFFFF;
   --tint: #FFF1E6;          /* 연한 크림 카드 */
@@ -170,7 +171,10 @@ h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -0.02em; }
 textarea, input[type="text"], input[type="number"], input[type="date"] { width: 100%; border: 2px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; background: #FFFCF9; font-weight: 600; }
 textarea:focus, input:focus { outline: none; border-color: var(--green); }
 textarea { resize: vertical; }
-label.lbl { font-weight: 800; font-size: 14px; display: flex; flex-direction: column; gap: 6px; }
+label.lbl { font-weight: 800; font-size: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* 휴대폰 날짜 칸: 기본 날짜 선택기가 자기 최소 폭을 고집해 칸 밖으로 튀어나오지 않게 */
+input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; min-height: 50px; }
+input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .voice { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 20px; border: 2px dashed #F2A88F; background: var(--tint); cursor: pointer; text-align: left; }
 .voice .mic { width: 52px; height: 52px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; box-shadow: 0 4px 0 var(--green-rim); }
