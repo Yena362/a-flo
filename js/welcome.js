@@ -1,6 +1,8 @@
 // 앱을 열 때(첫 화면에서) 무료 vs 프리미엄 차이를 보여 주는 안내 창
 // - "무료로 시작하기"로 넘어가면 다음에 앱을 열거나 새로고침할 때 또 떠요.
-// - 창닫기(X · 바깥 누르기 · Esc)로 닫으면 store의 welcomeClosed가 true가 되어 그 뒤로는 계속 안 떠요.
+// - X 버튼으로 닫으면 store의 welcomeHidden이 true가 되어 그 뒤로는 계속 안 떠요.
+// - 바깥 어두운 곳 누르기 · Esc는 이번만 닫혀요 (실수로 눌러도 다음에 다시 떠요).
+// - 예전 welcomeClosed(바깥 누르기·Esc까지 영구 닫기였음)는 쓰지 않아요 → 이미 닫은 사람도 한 번은 다시 보여요.
 // (프리미엄 이용자는 문구만 달라요. 요금제 비교 표는 프리미엄 화면과 함께 사용)
 import * as store from './store.js';
 import { icon, esc } from './ui.js';
@@ -19,7 +21,7 @@ export function planTable(label = '요금제 비교') {
 }
 
 export function showWelcome() {
-  if (store.get().welcomeClosed || document.querySelector('.welcome-wash')) return;
+  if (store.get().welcomeHidden || document.querySelector('.welcome-wash')) return;
   const pro = isPremium(); // 프리미엄 이용자에게는 문구만 바꿔서 보여 줘요
   const wash = document.createElement('div');
   wash.className = 'modal-wash welcome-wash';
@@ -36,13 +38,13 @@ export function showWelcome() {
   const prevFocus = document.activeElement;
 
   const close = ({ forever = false } = {}) => {
-    if (forever) store.set({ welcomeClosed: true }); // 창닫기로 닫으면 다음부터 안 띄워요
+    if (forever) store.set({ welcomeHidden: true }); // X로 닫으면 다음부터 안 띄워요
     document.removeEventListener('keydown', onKey);
     wash.remove();
     if (prevFocus instanceof HTMLElement) prevFocus.focus();
   };
   const onKey = e => {
-    if (e.key === 'Escape') close({ forever: true });
+    if (e.key === 'Escape') close(); // Esc는 이번만 닫기
     if (e.key === 'Tab') { // 창 안에서만 포커스가 돌게
       const f = [...wash.querySelectorAll('button, a[href]')];
       const first = f[0], last = f[f.length - 1];
@@ -59,7 +61,7 @@ export function showWelcome() {
     if (location.hash.split('?')[0] === '#/check') toUpload();
     else { location.hash = '#/check'; setTimeout(toUpload, 60); }
   });
-  wash.addEventListener('click', e => { if (e.target === wash) close({ forever: true }); }); // 바깥 어두운 곳을 눌러도 창닫기
+  wash.addEventListener('click', e => { if (e.target === wash) close(); }); // 바깥 어두운 곳은 이번만 닫기
   document.addEventListener('keydown', onKey);
   wash.querySelector('[data-start]').focus();
 }

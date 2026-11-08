@@ -11,7 +11,7 @@ const DEFAULT = {
   xp: 0, // 경험치 → 레벨
   rewarded: {}, // { 'YYYY-MM-DD:exam': true } 오늘 보상 받은 퀴즈
   plan: 'free', // 'free' | 'premium'
-  welcomeClosed: false, // 무료 vs 프리미엄 안내 창을 창닫기로 닫았는지 (닫으면 다시 안 띄움, welcome.js)
+  welcomeHidden: false, // 무료 vs 프리미엄 안내 창을 X로 닫았는지 (닫으면 다시 안 띄움, welcome.js)
   usage: {}, // { date: 'YYYY-MM-DD', count: 오늘 검사한 과제 수 }
   quizToday: {}, // { 'YYYY-MM-DD:assignment': { done: true, correct: true, offset: 0 } }
   history: [], // [{ date, title, score, grade }]
