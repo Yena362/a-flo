@@ -41,7 +41,10 @@ export function addWrong(q, from = '') {
 }
 
 export function removeWrong(id) {
-  store.set({ wrongNote: list().filter(w => w.id !== id) });
+  // 뺀 시각을 남겨 두면 다른 기기와 합칠 때 다시 살아나지 않아요 (merge.js)
+  const removed = Object.entries({ ...(store.get().wrongRemoved || {}), [id]: Date.now() })
+    .sort((a, b) => b[1] - a[1]).slice(0, 200);
+  store.set({ wrongNote: list().filter(w => w.id !== id), wrongRemoved: Object.fromEntries(removed) });
 }
 
 // 다시 풀기 상태: { tried: [고른 보기들], solved, revealed }

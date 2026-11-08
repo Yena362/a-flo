@@ -120,6 +120,7 @@ export default {
         <span class="chip blue">${icon(src.mine ? 'menu_book' : 'timer')}오늘의 1분 퀴즈 · ${src.topic}</span>
         ${s.rewarded?.[REWARD_KEY()] ? `<span class="chip green">${icon('check_circle', 'fill')}오늘 보상 받음</span>` : `<span class="chip blue">${icon('diamond', 'fill')}+${REWARD.gems} 보상</span>`}
         ${st.offset ? `<span class="chip">오늘 ${st.offset + 1}번째 문제</span>` : ''}
+        ${wrongList().length ? `<a class="chip orange" href="#/home?wn=1">${icon('bookmark', 'fill')}오답노트 ${wrongList().length}문제</a>` : ''}
       </div>
       ${fromName ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('description')}출처: ${esc(fromName)}</p>` : ''}
       ${session.homeQuizBusy ? `<p class="xs muted b" style="margin:-6px 0 0">${icon('progress_activity', 'spin')}올린 강의자료로 예상 문제를 만드는 중이에요. 다 되면 여기로 바뀌어요.</p>` : ''}

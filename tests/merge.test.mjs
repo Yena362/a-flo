@@ -69,3 +69,13 @@ test('클라우드 기록과 합쳐도 기기의 요금제는 그대로 남는�
   assert.deepEqual(applied.draft, { text: 'x' });
   assert.equal(applied.streak, 4);
 });
+
+test('오답 노트는 두 기기 것을 합치고, 뺀 문제는 다시 살아나지 않는다', () => {
+  const a = { id: 'wa', q: 'A', lastMissedAt: 100 };
+  const b = { id: 'wb', q: 'B', lastMissedAt: 200 };
+  const c = { id: 'wc', q: 'C', lastMissedAt: 50 };
+  const m = mergeState({ ...base, wrongNote: [a], updatedAt: 1 }, { ...base, wrongNote: [b, c], wrongRemoved: { wc: 60 }, updatedAt: 9 });
+  assert.deepEqual(m.wrongNote.map(w => w.id), ['wb', 'wa']);
+  const again = mergeState({ ...base, wrongNote: [{ ...c, lastMissedAt: 70 }], updatedAt: 1 }, { ...base, wrongRemoved: { wc: 60 }, updatedAt: 9 });
+  assert.deepEqual(again.wrongNote.map(w => w.id), ['wc']);
+});

@@ -8,6 +8,25 @@
 // - 오늘의 퀴즈 기록(quizToday)과 오늘 보상 받은 퀴즈(rewarded)는 둘을 합쳐요. 겹치면 최근 쪽이 이겨요.
 
 const HISTORY_LIMIT = 20;
+const WRONG_LIMIT = 50;
+const missedAt = w => w.lastMissedAt || w.addedAt || 0;
+
+// 오답 노트는 두 쪽을 합쳐요 (한쪽이 통째로 덮어쓰면 다른 기기에서 틀린 문제가 사라져요).
+// 같은 문제는 더 최근에 틀린 쪽, "노트에서 빼기"(wrongRemoved) 이후에 다시 틀리지 않은 문제는 빼요.
+function mergeWrong(local, cloud) {
+  const removed = { ...(cloud.wrongRemoved || {}) };
+  for (const [id, t] of Object.entries(local.wrongRemoved || {})) removed[id] = Math.max(removed[id] || 0, t);
+  const byId = new Map();
+  for (const w of [...(cloud.wrongNote || []), ...(local.wrongNote || [])]) {
+    const prev = byId.get(w.id);
+    if (!prev || missedAt(w) >= missedAt(prev)) byId.set(w.id, w);
+  }
+  const wrongNote = [...byId.values()]
+    .filter(w => !(removed[w.id] >= missedAt(w)))
+    .sort((a, b) => missedAt(b) - missedAt(a))
+    .slice(0, WRONG_LIMIT);
+  return { wrongNote, wrongRemoved: removed };
+}
 
 export function mergeState(local, cloud) {
   if (!cloud) return local;
@@ -36,6 +55,7 @@ export function mergeState(local, cloud) {
     history,
     quizToday: { ...(older.quizToday || {}), ...(newer.quizToday || {}) },
     rewarded: { ...(older.rewarded || {}), ...(newer.rewarded || {}) },
+    ...mergeWrong(local, cloud),
     updatedAt: Math.max(local.updatedAt || 0, cloud.updatedAt || 0),
   };
 }
