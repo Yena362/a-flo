@@ -43,7 +43,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .t-green { color: var(--ok-dark); } .t-red { color: var(--red-ink); } .t-orange { color: var(--orange-ink); } .t-blue { color: var(--blue-ink); }
 
 /* 레이아웃 */
-.view { max-width: 560px; margin: 0 auto; padding: 0 16px calc(112px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; }
+.view { max-width: 560px; margin: 0 auto; padding: 0 16px calc(112px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16px; overflow-anchor: none; }
 .view-editor { max-width: 1180px; }
 h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -0.02em; }
 .h1 { font-size: 26px; font-weight: 900; line-height: 1.3; }
@@ -54,6 +54,10 @@ h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -0.02em; }
 .topbar { position: sticky; top: 0; z-index: 10; margin: 0 -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; display: flex; align-items: center; gap: 8px; background: rgba(255, 248, 241, .92); backdrop-filter: blur(8px); border-bottom: 2px solid #F3E9DF; }
 .topbar .avatar { width: 44px; height: 44px; border-radius: 50%; background: #FFF3C4; display: grid; place-items: center; overflow: hidden; box-shadow: 0 3px 0 #F1D98A; text-decoration: none; }
 .topbar .avatar .mascot { width: 40px !important; height: 40px !important; }
+/* 휴대폰·태블릿: 상단 왼쪽에 A-flo 로고 (넓은 화면은 사이드바에 로고가 있어 캐릭터를 보여 줘요) */
+.topbar .brand-mark { flex-shrink: 0; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+.topbar .brand-mark img { display: block; width: 40px; height: 40px; }
+.topbar .avatar { display: none; }
 .topbar .brand { font-weight: 900; font-size: 20px; color: var(--green-dark); text-decoration: none; margin-right: auto; }
 .topbar .pills { display: flex; gap: 6px; margin: 0 auto; }
 .topbar .me { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #FFE6DC; color: #B53A1F; border: 2px solid #fff; box-shadow: 0 0 0 2px #FFC1AE; text-decoration: none; }
@@ -597,6 +601,8 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
   .tabbar .tab-brand { display: flex; align-items: center; gap: 10px; min-height: 56px; margin-bottom: 12px; font-size: 22px; font-weight: 900; color: var(--ink); }
   .tabbar .tab-brand:hover { background: none; }
   .tabbar .tab-brand img { display: block; width: 150px; height: auto; }
+  .topbar .brand-mark { display: none; }
+  .topbar .avatar { display: grid; }
 
   .toast { left: calc(50% + 124px); bottom: 32px; }
   .sticky-cta { bottom: 0; }

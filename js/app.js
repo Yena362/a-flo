@@ -49,17 +49,41 @@ function parse() {
 
 let cleanup = null;
 
+// 마지막으로 누른 곳. 문제를 풀어 화면을 다시 그릴 때 그 문제 카드를 화면의 같은 자리에 고정하는 데 써요.
+// (휴대폰 브라우저는 화면을 통째로 다시 그리면 스크롤이 맨 아래 등으로 튀는 일이 있어요)
+const ANCHOR = '.quiz, .wn-item, .card';
+let lastTap = null; // { el, top, at } — 누른 순간의 카드 위치 (그 뒤에 화면이 튀어도 원래 자리를 알 수 있게)
+document.addEventListener('pointerdown', e => {
+  const el = e.target instanceof Element ? e.target.closest(ANCHOR) : null;
+  lastTap = el ? { el, top: el.getBoundingClientRect().top, at: Date.now() } : null;
+}, true);
+
+function pinAnchor(root) {
+  if (!lastTap || Date.now() - lastTap.at > 3000 || !root.contains(lastTap.el)) return null;
+  return { idx: [...root.querySelectorAll(ANCHOR)].indexOf(lastTap.el), top: lastTap.top };
+}
+
+function restoreAnchor(root, pin) {
+  const el = root.querySelectorAll(ANCHOR)[pin.idx];
+  if (el) window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - pin.top);
+}
+
 function render({ keepScroll = false } = {}) {
   const { name, params } = parse();
   const view = routes[name];
   const root = document.getElementById('app');
   const y = window.scrollY;
+  const pin = keepScroll ? pinAnchor(root) : null;
   if (cleanup) { cleanup(); cleanup = null; }
   const ctx = { store, session, params, go: r => { location.hash = `#/${r}`; }, rerender: () => render({ keepScroll: true }) };
   root.className = `view view-${name}`;
   root.innerHTML = view.render(ctx);
   cleanup = view.mount ? view.mount(root, ctx) || null : null;
   window.scrollTo(0, keepScroll ? y : 0);
+  if (pin) {
+    restoreAnchor(root, pin);
+    requestAnimationFrame(() => restoreAnchor(root, pin)); // 글꼴·그림이 늦게 그려져도 한 번 더 맞춰요
+  }
   const h = root.querySelector('h1, h2')?.cloneNode(true);
   h?.querySelectorAll('.ms').forEach(n => n.remove()); // 아이콘 글자는 제목에서 빼기
   document.title = h ? `${h.textContent.trim()} · 에이플로` : '에이플로';

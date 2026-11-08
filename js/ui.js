@@ -19,6 +19,7 @@ export function player() {
 export function topbar() {
   const { s, lv, streak } = player();
   return `<header class="topbar">
+    <a class="brand-mark" href="#/check" aria-label="에이플로 · 과제 검사로"><img src="assets/logo/a-flo-symbol.svg" alt="" width="40" height="40"></a>
     <a class="avatar" href="#/check" aria-label="과제 검사로">${mascot(s.mascot, 'default', 40)}</a>
     <div class="pills">
       <span class="pill flame" title="연속 학습">${icon('local_fire_department', 'fill')}<b>${streak}일</b></span>
