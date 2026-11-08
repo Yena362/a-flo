@@ -20,7 +20,7 @@ export async function analyzeWithAI(input, { endpoint = '/api/analyze', timeoutM
       headers: { 'Content-Type': 'application/json' },
       // 아주 긴 글은 앞부분 25만 자만 AI에게 보냄 (규칙 엔진은 전체를 검사)
       body: JSON.stringify({
-        text: input.text.slice(0, MAX_TEXT), tags: input.tags, instructions: input.instructions, targetLength: input.targetLength,
+        text: input.text.slice(0, MAX_TEXT), tags: input.tags, instructions: input.instructions, targetLength: input.targetLength, citeStyle: input.citeStyle,
       }),
       signal: ctrl.signal,
     });

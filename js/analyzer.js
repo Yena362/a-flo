@@ -29,6 +29,21 @@ const REF_HEADING_RE = new RegExp(`^${HEAD_PREFIX}${REF_WORDS}${HEAD_SUFFIX}[ \\
 // APA 7판: "저자 (연도). 제목. 출판사." / 한국어 저자는 "김철수 (2021)." 또는 "김철수(2021).", 기관은 "통계청. (2023)."
 // 끝은 마침표 또는 DOI·URL
 const APA_REF_RE = /^[^()]+?\s?\((\d{4}[a-z]?|n\.d\.)(,[^)]*)?\)\.\s.+?(\.|\s(https?:\/\/|doi:)\S+)\s*$/i;
+// 사용자가 고르는 참고문헌 형식. 'auto'는 지시사항(APA·MLA·시카고 언급)과 '인용/출처 필수' 태그(→ APA)로 정해요.
+export const CITE_STYLES = {
+  auto: { label: '자동', short: '' },
+  apa: { label: 'APA 7판', short: 'APA', rule: '저자 (연도). 제목. 출판사.', example: '홍길동 (2021). 거시경제학 입문. 한빛아카데미.' },
+  mla: { label: 'MLA 9판', short: 'MLA', rule: '저자. 제목. 출판사, 연도.', example: '홍길동. 거시경제학 입문. 한빛아카데미, 2021.' },
+  chicago: { label: '시카고 (저자-연도)', short: '시카고', rule: '저자. 연도. 제목. 출판지: 출판사.', example: '홍길동. 2021. 거시경제학 입문. 서울: 한빛아카데미.' },
+  kr: { label: '국내 학술지식', short: '국내 학술지', rule: '저자(연도). 『제목』. 출판사.', example: '홍길동(2021). 『거시경제학 입문』. 한빛아카데미.' },
+};
+// 형식별 참고문헌 한 줄 검사 (MLA는 연도가 끝에, 시카고는 저자 바로 뒤에, 국내식은 저자(연도) 뒤 쉼표·마침표 모두 허용)
+const REF_RE = {
+  apa: APA_REF_RE,
+  mla: /^[^()]+?\.\s.+?[,.]\s*(?:19|20)\d{2}[a-z]?\.\s*$/,
+  chicago: /^[^()]+?\.\s(?:19|20)\d{2}[a-z]?\.\s.+\.\s*$/,
+  kr: /^[^()]+?\s?\((?:19|20)\d{2}[a-z]?\)\s*[.,]\s*.+\S\s*$/,
+};
 const LOCATION_RE = /(서울|파주|경기|부산|대전|대구|광주|인천|고양|성남|Seoul|New York|London|Oxford|Cambridge)\s*:\s*/;
 const PUBLISHER_RE = /(출판|출판사|북스|문고|아카데미|프레스|Press|Books|한울|박영|학지사|창비|민음사|문학동네|길벗|한빛|김영사|[가-힣]사$)/i;
 const PLACEHOLDER_RE = /\((?:저자|출처|기관명?|언론사|저자명)[^()]{0,6},\s*연도\)/g;
@@ -69,15 +84,20 @@ const CONNECTIVES = { 또한: '아울러·더불어', 그리고: '또·아울러
 // 한글 받침 번호 (없음 0, ㄴ 4, ㄹ 8, …). 한글 음절이 아니면 -1
 const jong = ch => { const c = ch ? ch.charCodeAt(0) - 0xAC00 : -1; return c >= 0 && c < 11172 ? c % 28 : -1; };
 
-export function deriveRequirements(tags = [], instructions = '', targetLength = 0) {
+export function deriveRequirements(tags = [], instructions = '', targetLength = 0, citeStyle = 'auto') {
   const ins = instructions || '';
   const t = new Set(tags);
   let length = Number(targetLength) || 0;
   const m = ins.match(/(\d[\d,]*)\s*자/);
   if (!length && m) length = Number(m[1].replace(/,/g, ''));
+  // 직접 고른 형식 > 지시사항에 적힌 형식 > '인용/출처 필수'면 APA
+  const picked = citeStyle && citeStyle !== 'auto' && REF_RE[citeStyle] ? citeStyle : null;
+  const said = /APA/i.test(ins) ? 'apa' : /MLA/i.test(ins) ? 'mla' : /시카고|Chicago/i.test(ins) ? 'chicago' : null;
+  const style = picked || said || (t.has('cite') ? 'apa' : null);
   return {
-    apa: /APA/i.test(ins) || t.has('cite'),
-    needCitation: t.has('cite') || /출처|인용|참고\s*문헌|APA/i.test(ins),
+    citeStyle: style,
+    apa: style === 'apa',
+    needCitation: !!picked || t.has('cite') || /출처|인용|참고\s*문헌|APA|MLA|시카고|Chicago/i.test(ins),
     newsInIntro: /서론/.test(ins) && /(뉴스|기사|보도)/.test(ins),
     structure: t.has('structure') || /서론.*본론.*결론/.test(ins),
     strict: t.has('strict'),
@@ -134,12 +154,17 @@ export function parseRef(raw) {
   return { author, year, title, publisher };
 }
 
-// 한국식·혼합 표기를 APA 7판 "저자 (연도). 제목. 출판사." 형태로 바꾼다
-export function toApa(ref) {
+// 한국식·혼합 표기를 고른 형식으로 바꾼다. 저자·연도·제목을 자신 있게 못 찾으면 null
+export function formatRef(ref, style = 'apa') {
   const p = parseRef(ref);
   if (!p) return null;
-  return `${p.author} (${p.year}). ${p.title}.${p.publisher ? ` ${p.publisher}.` : ''}`;
+  const { author: a, year: y, title: t, publisher: pub } = p;
+  if (style === 'mla') return `${a}. ${t}. ${pub ? `${pub}, ` : ''}${y}.`;
+  if (style === 'chicago') return `${a}. ${y}. ${t}.${pub ? ` ${pub}.` : ''}`;
+  if (style === 'kr') return `${a}(${y}). 『${t}』.${pub ? ` ${pub}.` : ''}`;
+  return `${a} (${y}). ${t}.${pub ? ` ${pub}.` : ''}`;
 }
+export const toApa = ref => formatRef(ref, 'apa');
 
 // 문장 나누기: 소수점(1.5%)·끝에 붙은 따옴표는 문장 끝으로 보지 않음
 function sentences(text, from, to) {
@@ -209,8 +234,10 @@ function citeMatches(c, k) {
   return !!a && (k.authors.includes(a) || a.includes(k.first));
 }
 
-export function analyze({ text = '', tags = [], instructions = '', targetLength = 0 } = {}) {
-  const req = deriveRequirements(tags, instructions, targetLength);
+export function analyze({ text = '', tags = [], instructions = '', targetLength = 0, citeStyle = 'auto' } = {}) {
+  const req = deriveRequirements(tags, instructions, targetLength, citeStyle);
+  const style = req.citeStyle;
+  const S = CITE_STYLES[style || 'apa'];
   const issues = [];
   let seq = 0;
   const add = (o) => issues.push({ id: `i${++seq}`, start: -1, end: -1, fix: null, ...o });
@@ -224,17 +251,17 @@ export function analyze({ text = '', tags = [], instructions = '', targetLength 
   if (req.needCitation && refs.length === 0) {
     add({ severity: 'danger', category: 'citation', title: '참고문헌 목록 없음',
       reason: '교수님이 출처 표기를 요구했는데 참고문헌 목록이 없어요.',
-      suggestion: '글 끝에 "참고문헌" 제목을 달고 사용한 자료를 APA 형식으로 정리하세요.', gain: 6 });
+      suggestion: `글 끝에 "참고문헌" 제목을 달고 사용한 자료를 ${S.short} 형식(${S.rule})으로 정리하세요.`, gain: 6 });
   }
   for (const ref of refs) {
-    if (!req.apa) break;
-    if (!APA_REF_RE.test(ref.text)) {
-      const fixed = toApa(ref.text);
-      add({ severity: 'danger', category: 'citation', title: 'APA 양식 아님', start: ref.start, end: ref.end, group: 'refs',
-        reason: '교수님이 말한 APA 7판 형식(저자 (연도). 제목. 출판사.)과 달라요.',
-        suggestion: fixed ? `${fixed}  (책 제목은 이탤릭체로)` : '저자 (연도). 제목. 출판사. 순서로 고치세요. 저자·연도·제목을 모두 적어야 해요.',
+    if (!style) break;
+    if (!REF_RE[style].test(ref.text)) {
+      const fixed = formatRef(ref.text, style);
+      add({ severity: 'danger', category: 'citation', title: `${S.short} 양식 아님`, start: ref.start, end: ref.end, group: 'refs',
+        reason: `${S.label} 형식(${S.rule})과 달라요.`,
+        suggestion: fixed ? `${fixed}${style === 'kr' ? '' : '  (책 제목은 이탤릭체로)'}` : `${S.rule} 순서로 고치세요. 저자·연도·제목을 모두 적어야 해요.`,
         fix: fixed, gain: 2 });
-    } else if (LOCATION_RE.test(ref.text)) {
+    } else if (style === 'apa' && LOCATION_RE.test(ref.text)) {
       const fixed = ref.text.replace(LOCATION_RE, '');
       add({ severity: 'danger', category: 'citation', title: '출판사 위치 표기', start: ref.start, end: ref.end, group: 'refs',
         reason: 'APA 7판부터는 출판사 위치(예: 서울:)를 쓰지 않아요.', suggestion: fixed, fix: fixed, gain: 2 });
@@ -244,7 +271,8 @@ export function analyze({ text = '', tags = [], instructions = '', targetLength 
   // 2) 본문 인용 ↔ 참고문헌 목록 대조
   const cites = inTextCitations(body);
   const keyed = refs.map(r => ({ ref: r, key: refKey(r) })).filter(x => x.key);
-  if (refs.length && keyed.length) {
+  // MLA는 본문에 (저자 쪽수)만 써서 연도로 대조할 수 없어요
+  if (refs.length && keyed.length && style !== 'mla') {
     if (cites.length === 0 && req.needCitation) {
       add({ severity: 'danger', category: 'citation', title: '본문 인용 표시 없음',
         reason: '참고문헌은 있는데 본문 어디에도 (저자, 연도) 표시가 없어요. 어느 문장이 어느 자료에서 왔는지 알 수 없어요.',
@@ -262,7 +290,8 @@ export function analyze({ text = '', tags = [], instructions = '', targetLength 
           reason: sameAuthor
             ? `본문은 ${c.year}년인데 참고문헌에는 ${sameAuthor.key.year}년으로 적혀 있어요.`
             : `본문에서 ${c.author}(${c.year})를 인용했는데 참고문헌 목록에 없어요.`,
-          suggestion: sameAuthor ? '본문과 참고문헌의 연도를 같게 맞추세요.' : `참고문헌에 "${c.author} (${c.year}). 제목. 출판사."를 추가하세요.`,
+          suggestion: sameAuthor ? '본문과 참고문헌의 연도를 같게 맞추세요.'
+            : `참고문헌에 "${style === 'chicago' ? `${c.author}. ${c.year}. 제목. 출판사.` : style === 'kr' ? `${c.author}(${c.year}). 『제목』. 출판사.` : `${c.author} (${c.year}). 제목. 출판사.`}"를 추가하세요.`,
           gain: 2 });
       }
       for (const x of keyed) {
@@ -575,7 +604,7 @@ function finalize({ text, issues, req, bodyChars, unsourcedQuoteChars, clicheCou
   // 지시사항 체크리스트: 자동 확인한 것과 직접 확인할 것
   const checklist = (instructions || '')
     .split(/[\n,·]|(?:\.\s)/).map(s => s.trim()).filter(s => s.length > 1)
-    .map(s => ({ text: s, auto: /APA|참고\s*문헌|출처|인용|뉴스|기사|서론|본론|결론|\d+\s*자|맞춤법|띄어쓰기|표|그림|존댓말|구어/i.test(s) }));
+    .map(s => ({ text: s, auto: /APA|MLA|시카고|Chicago|참고\s*문헌|출처|인용|뉴스|기사|서론|본론|결론|\d+\s*자|맞춤법|띄어쓰기|표|그림|존댓말|구어/i.test(s) }));
 
   return {
     score, grade: gradeOf(score), rubric, plagiarism, issues, mood, message, req, checklist,

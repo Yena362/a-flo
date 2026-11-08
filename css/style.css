@@ -630,3 +630,13 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
   .check-side .cta-bar { position: static; background: none; padding: 0; }
 }
 @media (max-width: 899px) { .drag-hint { display: none; } }
+
+/* 과제 검사: 참고문헌 인용 형식 고르기 */
+.cite-style { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.cite-style legend { padding: 0; margin-bottom: 8px; font-weight: 800; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.radio-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.radio-pill { position: relative; cursor: pointer; }
+.radio-pill input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.radio-pill span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 2px solid var(--line); background: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 3px 0 var(--line); }
+.radio-pill input:checked + span { border-color: var(--green-rim); background: var(--green-bg); color: var(--green-dark); box-shadow: 0 3px 0 var(--green-rim); }
+.radio-pill input:focus-visible + span { outline: 3px solid #2F80ED; outline-offset: 2px; }

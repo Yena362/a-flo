@@ -2,7 +2,7 @@
 // 넓은 화면은 오른쪽에 '준비 상태' 패널, 휴대폰은 하단 고정 버튼 바로 보여요.
 import { topbar, tabbar, icon, esc, toast } from '../ui.js';
 import { mascot, CHARACTERS } from '../mascot.js';
-import { TAGS } from '../analyzer.js';
+import { TAGS, CITE_STYLES } from '../analyzer.js';
 import { analyzeWithAI } from '../ai.js';
 import { readAssignmentFile } from '../docx.js';
 import { SAMPLE } from '../sample.js';
@@ -16,6 +16,9 @@ const TAG_UI = {
   structure: ['view_agenda', '서론·본론·결론 구성을 봐요'],
   length: ['straighten', '요구 분량을 지켰는지 봐요'],
 };
+const citeHint = k => k === 'auto' || !CITE_STYLES[k]
+  ? '지시사항에 APA·MLA·시카고가 적혀 있으면 그 형식으로, \'인용/출처 필수\'만 골랐으면 APA로 검사해요.'
+  : `예: ${CITE_STYLES[k].example}`;
 const stepHead = (n, title, need, hint) => `<div class="step-head"><span class="step-no" aria-hidden="true">${n}</span><div class="grow"><h2 class="card-title">${title}<span class="need ${need ? 'req' : ''}">${need ? '필수' : '선택'}</span></h2>${hint ? `<p class="sm muted b" style="margin:2px 0 0">${hint}</p>` : ''}</div></div>`;
 const STEPS = ['교수님 지시사항 분석', '표절 및 문단 대조', '감점 요소 추출', 'AI 내용·논리 평가'];
 const MIN_MS = 3600;
@@ -114,6 +117,13 @@ export default {
             <label class="lbl">요구 분량 (자)<input name="targetLength" type="number" min="0" step="100" inputmode="numeric" placeholder="모르면 비워 두기" value="${d.targetLength || ''}"></label>
             <label class="lbl">제출 마감일<input name="dueDate" type="date" value="${esc(d.dueDate || '')}"></label>
           </div>
+          <fieldset class="cite-style">
+            <legend>참고문헌 인용 형식 <span class="xs muted">교수님이 정한 형식이 있으면 골라 주세요</span></legend>
+            <div class="radio-pills">
+              ${Object.entries(CITE_STYLES).map(([k, v]) => `<label class="radio-pill"><input type="radio" name="citeStyle" value="${k}" ${(d.citeStyle || 'auto') === k ? 'checked' : ''}><span>${v.label}</span></label>`).join('')}
+            </div>
+            <p class="xs muted b" id="cite-hint" style="margin:0">${esc(citeHint(d.citeStyle || 'auto'))}</p>
+          </fieldset>
         </section>
       </div>
 
@@ -124,6 +134,7 @@ export default {
             <li id="rd-text"></li>
             <li id="rd-tags"></li>
             <li id="rd-inst"></li>
+            <li id="rd-cite"></li>
           </ul>
           <div class="ready-get">
             <p class="xs muted b" style="margin:0 0 6px">검사하면 받는 것</p>
@@ -174,6 +185,9 @@ export default {
       row('#rd-text', chars >= 20, `과제 본문 ${chars.toLocaleString()}자`, chars ? '본문이 너무 짧아요 (20자 이상)' : '과제를 올려 주세요', false);
       row('#rd-tags', tagN > 0, `교수님 스타일 ${tagN}개`, '교수님 스타일 (선택)', true);
       row('#rd-inst', !!inst, '수업 지시사항 입력됨', '수업 지시사항 (선택)', true);
+      const cs = form.citeStyle.value;
+      row('#rd-cite', cs !== 'auto', `인용 형식 ${CITE_STYLES[cs]?.label || ''}`, '인용 형식 자동 (선택)', true);
+      form.querySelector('#cite-hint').textContent = citeHint(cs);
       if (session.phase === 'running') return;
       const ready = chars >= 20;
       submit.disabled = !ready;
@@ -184,6 +198,7 @@ export default {
     };
     text.addEventListener('input', update);
     form.instructions.addEventListener('input', update);
+    form.querySelectorAll('input[name="citeStyle"]').forEach(r => r.addEventListener('change', update));
     update();
 
     form.querySelectorAll('.tag').forEach(b => b.addEventListener('click', () => {
@@ -304,6 +319,7 @@ export default {
         tags: [...form.querySelectorAll('.tag[aria-pressed="true"]')].map(b => b.dataset.tag),
         instructions: form.instructions.value.trim(),
         targetLength: Number(form.targetLength.value) || 0,
+        citeStyle: form.citeStyle.value || 'auto',
         dueDate: form.dueDate.value || '',
         text: text.value,
         fileName: text.value.trim() ? loaded.fileName : '',
