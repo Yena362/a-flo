@@ -117,10 +117,11 @@ export function mascotSvg(key = 'chick', mood = 'default') {
   return `<svg viewBox="0 0 200 200" aria-hidden="true"><g transform="translate(100 104) scale(${s}) translate(-100 -104)">${back}${body(key, o.lvl || 2)}${ck}${eyes(p, o.eyes || 'open')}${g}${mouth(p, o.mouth || 'n')}${front}</g></svg>`;
 }
 
-// PNG가 있으면 PNG, 없으면 SVG. (img가 404면 스스로 지워지고 뒤의 svg가 보인다)
+// SVG를 먼저 보여 주고, PNG가 실제로 불러와지면 그때 PNG로 바꿔요.
+// (느린 휴대폰 인터넷에서도 PNG를 기다리는 동안 빈 원이 보이지 않게)
 export function mascot(key, mood = 'default', size = 96, extraClass = '') {
   const label = `${CHARACTERS[key]?.name || ''} ${MOODS[mood] || ''}`.trim();
-  return `<span class="mascot ${extraClass}" role="img" aria-label="${label}" style="width:${size}px;height:${size}px"><img src="assets/mascot/${key}/${mood}.png" alt="" onerror="this.remove()">${mascotSvg(key, mood)}</span>`;
+  return `<span class="mascot ${extraClass}" role="img" aria-label="${label}" style="width:${size}px;height:${size}px"><img src="assets/mascot/${key}/${mood}.png" alt="" decoding="async" onload="this.parentNode.classList.add('png')" onerror="this.remove()">${mascotSvg(key, mood)}</span>`;
 }
 
 // 사용자 레벨(경험치) → 캐릭터 성장 단계 1~3
