@@ -131,6 +131,21 @@ spacing:
   space-xl: 3rem
 ---
 
+> **2026-11 A-flo 브랜드 개편 — 이 섹션이 아래 내용보다 우선해요.**
+> 실제 값은 `css/style.css`의 `:root` 변수가 기준이에요. 브랜드 보드는 `aflo-brand/brand-board.html`, 로고 원본은 `assets/logo/`에 있어요.
+>
+> | 역할 | 변수 | 값 |
+> |---|---|---|
+> | 로고 코랄 (그림 전용) | — | `#F2583A` |
+> | 주 색 (버튼·링크·선택) | `--green` / `--green-dark` | `#D63F22` / `#B53A1F` (흰 글자 대비 4.5 이상) |
+> | 포인트 노랑 | `--yellow` | `#FFC23D` |
+> | 글자 네이비 | `--ink` | `#1E2A4A` |
+> | 배경 크림 | `--bg` / `--tint` | `#FFF8F1` / `#FFF1E6` |
+> | 정답·안전 초록 | `--ok` / `--ok-dark` / `--ok-bg` | `#1A8754` / `#146B43` / `#E3F5EB` |
+>
+> 글꼴은 로고 워드마크와 같은 **Pretendard**예요. 변수 이름 `--green`은 예전 이름을 그대로 둔 것이고, 실제 색은 코랄이에요.
+
+
 ## Brand & Style
 
 This design system translates the high-engagement, tactile gamification of modern language-learning apps into the high-stakes world of university grade defense and assignment coaching. Designed for college students balancing deadlines, rubric ambiguity, and academic pressure, the interface dispels panic through an encouraging, energetic, and physical visual language.

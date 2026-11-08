@@ -34,7 +34,7 @@ function body(key, lvl) {
     return SH(50, 190) + `<path d="M100 14 C118 48 160 68 160 122 C160 160 133 184 100 184 C67 184 40 160 40 122 C40 92 58 78 70 56 C74 76 82 84 90 86 C86 62 92 38 100 14Z" fill="${o}"/><path d="M100 74 C114 98 138 110 138 136 C138 160 120 174 100 174 C80 174 62 160 62 136 C62 116 78 106 84 94 C88 106 94 108 100 108 C97 96 97 86 100 74Z" fill="${i}"/>`;
   }
   if (lvl === 1) return SH(60, 190) + `<path d="M40 160 q-14 -10 -10 -26" stroke="#BDB2AA" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M160 160 q16 -6 18 -26" stroke="#BDB2AA" stroke-width="5" fill="none" stroke-linecap="round"/><path d="${APATH}" fill="#FFFFFF" stroke="#2B1A16" stroke-width="4" stroke-dasharray="10 7"/>`;
-  const c1 = lvl === 3 ? '#FFB000' : '#FF6B4A', c2 = lvl === 3 ? '#FFD95A' : '#FFA43A';
+  const c1 = lvl === 3 ? '#FFB000' : '#F2583A', c2 = lvl === 3 ? '#FFD95A' : '#FFC23D';
   return SH(60, 190) + `<path d="M40 160 q-14 -10 -10 -26" stroke="${c1}" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M160 160 q16 -6 18 -26" stroke="${c1}" stroke-width="10" fill="none" stroke-linecap="round"/><path d="${APATH}" fill="${c1}"/><path d="${ATOP}" fill="${c2}"/>`;
 }
 
