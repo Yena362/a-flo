@@ -117,6 +117,10 @@ h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -0.02em; }
 .hero { display: flex; align-items: center; gap: 14px; }
 .hero-avatar { position: relative; flex-shrink: 0; width: 116px; height: 116px; border-radius: 50%; background: radial-gradient(circle at 50% 45%, #FFF6CF 0 58%, #FFE680 59% 100%); box-shadow: 0 0 0 6px #FFE6DC, 0 0 24px 6px rgba(242, 88, 58, .28); display: grid; place-items: center; }
 .hero-avatar.sm { width: 84px; height: 84px; box-shadow: 0 0 0 4px #FFF2D6; }
+/* 평소 말풍선: 작은 캐릭터 + 작은 말풍선 (반응하는 순간에만 큰 hero) */
+.hero.compact { gap: 10px; align-items: center; }
+.hero.compact .hero-avatar { width: 56px; height: 56px; box-shadow: 0 0 0 3px #FFF2D6; }
+.hero.compact .bubble { font-size: 15px; padding: 10px 14px; border-radius: 16px; }
 .lv-badge { position: absolute; right: -6px; bottom: -4px; display: inline-flex; align-items: center; gap: 2px; padding: 3px 10px; border-radius: 999px; background: var(--orange); color: #fff; font-weight: 900; font-size: 14px; border: 2px solid #fff; box-shadow: 0 3px 0 var(--orange-rim); }
 .bubble { position: relative; flex: 1; min-width: 0; text-wrap: pretty; background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 14px 16px; font-weight: 800; font-size: 17px; line-height: 1.5; box-shadow: 0 4px 0 0 var(--line); }
 .bubble::before { content: ''; position: absolute; left: -10px; top: 26px; border: 9px solid transparent; border-right-color: var(--line); border-left: 0; }
@@ -338,6 +342,9 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
   .hero-avatar .mascot { width: 78px !important; height: 78px !important; }
   .hero-avatar.sm { width: 72px; height: 72px; }
   .hero-avatar.sm .mascot { width: 60px !important; height: 60px !important; }
+  .hero.compact .hero-avatar { width: 52px; height: 52px; }
+  .hero.compact .hero-avatar .mascot { width: 44px !important; height: 44px !important; }
+  .hero.compact .bubble { font-size: 14.5px; padding: 10px 12px; }
   .lv-badge { font-size: 12px; padding: 2px 8px; right: -8px; }
   .bubble { font-size: 15.5px; padding: 12px 14px; }
   .quiz .q { font-size: 20px; }

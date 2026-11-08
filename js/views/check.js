@@ -38,7 +38,7 @@ function panel(session, s) {
   const who = CHARACTERS[s.mascot]?.name || '코치';
   return `<section class="card tint scan" id="scan" aria-live="polite">
     <div class="row">
-      <div class="hero-avatar sm">${mascot(s.mascot, done ? (r.mood === 'danger' ? 'danger' : 'cheer') : 'analyzing', 70, done ? '' : 'bob')}</div>
+      <div class="hero-avatar ${done ? '' : 'sm'}">${mascot(s.mascot, done ? (r.mood === 'danger' ? 'danger' : 'cheer') : 'analyzing', done ? 96 : 70, 'bob')}</div>
       <div class="grow">
         <h2 class="h3">${done ? `${who} 정밀 분석 완료!` : `${who}가 정밀 분석 중!`}</h2>
         <p class="sm muted b" style="margin:0">교수님 평가 기준과 대조 스캔</p>

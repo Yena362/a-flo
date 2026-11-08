@@ -70,11 +70,13 @@ function a11yMenu() {
 }
 
 // 마스코트 + 말풍선 카드
-export function mascotTalk({ mood = 'default', html, who = '', small = false, tint = false, badge = true }) {
+// 캐릭터 말풍선. 평소에는 작게(compact), 반응하는 순간(연속 끊김 · 분석 완료 등)에만 big: true로 크게.
+// (small은 예전 호출 호환용으로 남겨 둔 이름이에요. 이제 기본이 작아요)
+export function mascotTalk({ mood = 'default', html, who = '', small = false, tint = false, badge = true, big = false }) {
   const { s, lv, stage } = player();
   const m = mood === 'stage' ? `lv${stage}` : mood;
-  return `<section class="hero">
-    <div class="hero-avatar ${small ? 'sm' : ''}">${mascot(s.mascot, m, small ? 70 : 96, 'bob')}${badge ? `<span class="lv-badge">${icon('school', 'fill')}Lv.${lv}</span>` : ''}</div>
+  return `<section class="hero ${big ? '' : 'compact'}">
+    <div class="hero-avatar">${mascot(s.mascot, m, big ? 96 : 48, big ? 'bob' : '')}${big && badge ? `<span class="lv-badge">${icon('school', 'fill')}Lv.${lv}</span>` : ''}</div>
     <div class="bubble ${tint ? 'tint' : ''}">${who ? `<div class="who">${who}</div>` : ''}${html}</div>
   </section>`;
 }

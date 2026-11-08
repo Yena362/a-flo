@@ -101,7 +101,7 @@ export default {
     const bonus = streak >= 3;
 
     return `${topbar()}
-    ${mascotTalk({ mood, html: `"${esc(line)}"`, who: `${esc(stageName)} ${esc(name)} ${due ? `<span class="chip red xs">${esc(due)}</span>` : ''}` })}
+    ${mascotTalk({ mood, big: broken, html: `"${esc(line)}"`, who: `${esc(stageName)} ${esc(name)} ${due ? `<span class="chip red xs">${esc(due)}</span>` : ''}` })}
 
     <section class="card">
       <div class="between">
