@@ -1,8 +1,7 @@
 // 프리미엄 안내: 무료 vs 프리미엄 비교, 업그레이드 (결제 연동 전에는 시연용 체험 스위치)
 import { topbar, tabbar, icon, esc, toast, mascotTalk } from '../ui.js';
-import { FEATURES, FREE_DAILY_FILES, PRICE_LABEL, PAYMENT_READY, isPremium, setPremium, usedToday } from '../plan.js';
-
-const cell = v => (v === true ? icon('check_circle', 'fill t-green') : v === false ? icon('lock', 't-muted') : `<b>${esc(v)}</b>`);
+import { FREE_DAILY_FILES, PRICE_LABEL, PAYMENT_READY, isPremium, setPremium, usedToday } from '../plan.js';
+import { planTable } from '../welcome.js';
 
 export default {
   render({ session }) {
@@ -17,13 +16,7 @@ export default {
       <div class="price"><b>${PRICE_LABEL ? esc(PRICE_LABEL) : '가격은 출시 때 공개'}</b></div>
     </section>
 
-    <section class="card stack plan-table" aria-label="요금제 비교">
-      <div class="plan-row head"><span></span><span>무료</span><span class="pro">프리미엄</span></div>
-      ${FEATURES.map(f => `<div class="plan-row">
-        <span class="feat">${icon(f.icon)}<span><b>${esc(f.name)}</b>${f.desc ? `<span class="xs muted b">${esc(f.desc)}</span>` : ''}</span></span>
-        <span>${cell(f.free)}</span><span class="pro">${cell(f.premium)}</span>
-      </div>`).join('')}
-    </section>
+    ${planTable()}
 
     ${on
       ? `<a class="btn green big" href="#/notebook">${icon('menu_book')}자료 노트북 열기</a>

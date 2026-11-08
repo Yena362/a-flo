@@ -389,6 +389,13 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .plan-row .feat { display: flex; gap: 8px; align-items: flex-start; text-align: left; }
 .plan-row .feat > span:last-child { display: flex; flex-direction: column; gap: 2px; }
 .plan-row .feat .ms { color: var(--green-dark); }
+/* 첫 방문 안내 창 (welcome.js) */
+.modal.welcome { position: relative; width: min(520px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; text-align: center; }
+.welcome-logo { display: block; width: 150px; height: auto; margin: 0 auto; }
+.welcome-x { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--tint); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.welcome-x:hover { background: var(--tint-2); }
+.modal.welcome .plan-table { text-align: left; box-shadow: none; padding: 4px 12px; }
+.modal.welcome .link { align-self: center; }
 .t-muted { color: #B6C0CE; }
 
 /* ===== 자료 노트북 ===== */
