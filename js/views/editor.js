@@ -107,7 +107,7 @@ export default {
   render({ store, session }) {
     const r = session.ensureResult();
     if (!r) {
-      return `${topbar()}<section class="card empty-state">${mascotTalk({ mood: 'quiz', small: true, html: '"고칠 과제가 아직 없어! 먼저 과제를 올려 줘."' })}<a class="btn green big" href="#/check">${icon('upload_file')}과제 제출하러 가기</a></section>${tabbar('editor')}`;
+      return `${topbar({ game: false })}<section class="card empty-state">${mascotTalk({ mood: 'quiz', small: true, html: '"고칠 과제가 아직 없어! 먼저 과제를 올려 줘."' })}<a class="btn green big" href="#/check">${icon('upload_file')}과제 제출하러 가기</a></section>${tabbar('editor')}`;
     }
     const { name } = player();
     const mobile = isMobile();
@@ -159,7 +159,7 @@ export default {
       ? `<div class="minibar" role="status"><span>${icon('rocket_launch')}</span><span><b>${r.score}점 ${r.grade}</b>${diff ? ` <span class="xs">(${diff > 0 ? '+' : ''}${diff})</span>` : ''}<br><span class="xs">위험 ${dangers} · 주의 ${warnings}</span></span><button class="btn sm green" data-view="solution">수정 목록</button></div>`
       : '';
 
-    return `${topbar()}
+    return `${topbar({ game: false })}
     <section class="card stack">
       <div class="doc-head">${icon('description', 'fill')}<h1>${esc(input.title || '제목 없는 과제')}</h1></div>
       ${bulk.length >= 2 ? `<button class="btn blue" id="bulk">${icon('bolt', 'fill')}원클릭 반영 · 맞춤법·형식 ${bulk.length}건</button>` : ''}

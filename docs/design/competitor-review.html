@@ -1,0 +1,213 @@
+<title>에이플로 디자인 경쟁 분석</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Black+Han+Sans&display=swap">
+<style>
+/* 레이아웃: 결론 → 포지션 지도 → 서비스별 비교 표 → 에이플로 진단 → 우선순위 개선안. 에이플로 브랜드 토큰을 그대로 씀 */
+:root {
+  --bg: #FFF8F1; --surface: #FFFFFF; --tint: #FFF1E6; --line: #EFE4D8;
+  --ink: #1E2A4A; --muted: #5F6476;
+  --coral: #D63F22; --coral-soft: #FFE6DC; --sun: #FFC23D; --sun-soft: #FFF3D1;
+  --ok: #146B43; --ok-soft: #E3F5EB; --bad: #B4232A; --bad-soft: #FDE4E4;
+  --display: 'Black Han Sans', 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --body: 'IBM Plex Sans KR', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141A2E; --surface: #1C2440; --tint: #222B4A; --line: #2F3A5E;
+  --ink: #F3EEE8; --muted: #A9AFC2;
+  --coral: #FF7A5C; --coral-soft: #3A2430; --sun: #FFC23D; --sun-soft: #3A3324;
+  --ok: #6FD3A0; --ok-soft: #1E3A33; --bad: #FF8A8A; --bad-soft: #3F2230; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141A2E; --surface: #1C2440; --tint: #222B4A; --line: #2F3A5E;
+  --ink: #F3EEE8; --muted: #A9AFC2;
+  --coral: #FF7A5C; --coral-soft: #3A2430; --sun: #FFC23D; --sun-soft: #3A3324;
+  --ok: #6FD3A0; --ok-soft: #1E3A33; --bad: #FF8A8A; --bad-soft: #3F2230; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.65; word-break: keep-all; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; line-height: 1.25; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); letter-spacing: -0.01em; }
+h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+h3 { font-size: 17px; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--coral); }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+section { display: flex; flex-direction: column; gap: 18px; }
+
+/* 머리 */
+header { display: flex; flex-direction: column; gap: 14px; }
+.verdict { background: var(--surface); border: 2px solid var(--ink); border-radius: 20px; padding: 22px 24px; display: grid; gap: 10px; box-shadow: 6px 6px 0 var(--sun); }
+.verdict b { color: var(--coral); }
+
+/* 포지션 지도 */
+.map-wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: center; }
+.map { position: relative; aspect-ratio: 1 / 1; max-width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.map::before, .map::after { content: ""; position: absolute; background: var(--line); }
+.map::before { left: 50%; top: 8%; bottom: 8%; width: 1px; }
+.map::after { top: 50%; left: 8%; right: 8%; height: 1px; }
+.ax { position: absolute; font-size: 12px; font-weight: 600; color: var(--muted); }
+.ax.t { top: 10px; left: 50%; transform: translateX(-50%); } .ax.b { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.ax.l { left: 10px; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; } .ax.r { right: 10px; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; }
+.dot { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.dot i { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); display: block; }
+.dot.me i { width: 20px; height: 20px; background: var(--coral); box-shadow: 0 0 0 5px var(--coral-soft); }
+.dot.goal i { background: transparent; border: 2px dashed var(--coral); width: 20px; height: 20px; }
+.dot.me, .dot.goal { color: var(--coral); }
+.legend { display: grid; gap: 12px; }
+.legend p { font-size: 15px; }
+
+/* 비교 표 */
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+thead th { font-size: 12px; letter-spacing: .06em; color: var(--muted); background: var(--tint); font-weight: 700; }
+tbody th { font-size: 15px; white-space: nowrap; }
+tbody th span { display: block; font-size: 12px; color: var(--muted); font-weight: 500; }
+tr:last-child th, tr:last-child td { border-bottom: 0; }
+td.take { background: var(--sun-soft); font-weight: 600; }
+tr.me th, tr.me td { background: var(--coral-soft); }
+
+/* 진단 */
+.diag { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.col { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.col h3 { display: flex; align-items: center; gap: 8px; }
+.tag { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.tag.good { background: var(--ok-soft); color: var(--ok); } .tag.bad { background: var(--bad-soft); color: var(--bad); }
+ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+li { padding-left: 2px; }
+
+/* 우선순위 */
+.plan { display: grid; gap: 12px; counter-reset: p; }
+.item { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+.pri { font-family: var(--display); font-size: 22px; line-height: 1; padding-top: 2px; }
+.pri small { display: block; font-family: var(--body); font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+.p1 .pri { color: var(--coral); } .p2 .pri { color: var(--ink); } .p3 .pri { color: var(--muted); }
+.item .body { display: grid; gap: 6px; min-width: 0; }
+.ref { font-size: 13px; color: var(--muted); }
+.ref b { color: var(--ink); }
+
+.sources { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+.sources a { color: var(--coral); }
+a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+
+@media (max-width: 760px) {
+  .map-wrap, .diag { grid-template-columns: minmax(0, 1fr); }
+  .item { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .dot { font-size: 11px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">A-flo · 디자인 리뷰 · 2026년 11월</span>
+    <h1>진짜 쓰고 싶은 에이플로</h1>
+    <p class="muted">과제 검사·글쓰기 도구 5곳과 학습 앱 1곳을 에이플로와 나란히 놓고, 학생이 "이거 써야겠다"고 느끼게 만드는 디자인 차이를 정리했어요.</p>
+    <div class="verdict">
+      <span class="eyebrow">한 줄 결론</span>
+      <p>에이플로는 기능이 경쟁사보다 넓어요. 그런데 <b>과제 결과를 보는 순간에도 게임 화면처럼 요소가 많아서</b> 믿고 맡기기가 어려워요.</p>
+      <p><b>검사·결과 화면은 Grammarly·카피킬러처럼 차분하게</b>, <b>퀴즈·연속 학습은 Duolingo처럼 놀이처럼</b>. 두 분위기를 화면별로 나누면 둘 다 살아나요.</p>
+    </div>
+  </header>
+
+  <section>
+    <span class="eyebrow">포지션</span>
+    <h2>지금 에이플로는 어디에 서 있나</h2>
+    <div class="map-wrap">
+      <div class="map" role="img" aria-label="서비스 포지션 지도. 가로축은 검사 도구에서 학습 코치, 세로축은 차분함에서 놀이. 에이플로는 학습 코치이면서 놀이 쪽 위쪽에 있고, 목표 위치는 가운데 오른쪽이에요.">
+        <span class="ax t">놀이 · 게임처럼</span>
+        <span class="ax b">차분 · 전문 도구처럼</span>
+        <span class="ax l">검사 도구</span>
+        <span class="ax r">학습 코치</span>
+        <span class="dot" style="left:24%;top:80%"><i></i>Turnitin</span>
+        <span class="dot" style="left:30%;top:68%"><i></i>카피킬러</span>
+        <span class="dot" style="left:46%;top:60%"><i></i>QuillBot</span>
+        <span class="dot" style="left:60%;top:70%"><i></i>Grammarly</span>
+        <span class="dot" style="left:66%;top:44%"><i></i>뤼튼</span>
+        <span class="dot" style="left:82%;top:18%"><i></i>Duolingo</span>
+        <span class="dot me" style="left:70%;top:24%"><i></i>에이플로 지금</span>
+        <span class="dot goal" style="left:68%;top:48%"><i></i>목표</span>
+      </div>
+      <div class="legend">
+        <p><b>가로축</b>은 "틀린 곳을 찾아 주는 도구"와 "실력을 키워 주는 코치" 사이 어디쯤인지, <b>세로축</b>은 화면 분위기예요. 위치는 공개 화면과 리뷰를 보고 내린 판단이에요.</p>
+        <p>에이플로는 Duolingo 바로 옆, 놀이 쪽 위에 있어요. 그런데 에이플로의 핵심 순간은 <b>제출 직전 과제를 검사받는 순간</b>이에요. 이때 학생은 긴장해 있고, 결과를 믿을 수 있는지가 제일 중요해요.</p>
+        <p>목표는 <b>가운데 오른쪽</b>이에요. 결과는 전문 도구처럼 믿음직하게, 꾸준히 쓰게 만드는 장치는 지금처럼 즐겁게 가져가요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">서비스별 비교</span>
+    <h2>각자 잘하는 한 가지, 에이플로가 가져올 것</h2>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="서비스별 디자인 비교 표 (옆으로 밀어서 보기)">
+      <table>
+        <thead><tr><th scope="col">서비스</th><th scope="col">결과를 보여 주는 방식</th><th scope="col">화면 분위기</th><th scope="col">계속 쓰게 하는 장치</th><th scope="col">믿음을 주는 장치</th><th scope="col">에이플로가 가져올 것</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Grammarly<span>영문 글쓰기 교정</span></th><td>글 옆에 제안 목록, 위에 종합 점수 하나. 제안은 종류별 색으로 묶어요.</td><td>흰 바탕, 초록 포인트 하나. 요소가 적어요.</td><td>점수를 올리는 재미, 주간 리포트</td><td>문장마다 "왜 바꾸는지" 한 줄 설명</td><td class="take">점수 하나 + 종류별로 묶인 수정 목록</td></tr>
+          <tr><th scope="row">카피킬러<span>국내 표절·AI 검사</span></th><td>표절률 %를 크게, 의심 문장을 색으로 하이라이트</td><td>사무용 도구 느낌, 정보가 빽빽해요</td><td>재검사 (제출 전 자가 점검)</td><td>대학에서 쓰는 도구라는 인지도, 출처 문서 연결</td><td class="take">% 숫자를 "어느 문장 때문인지"와 바로 연결</td></tr>
+          <tr><th scope="row">Turnitin<span>해외 대학 표절 검사</span></th><td>유사도 % + 출처별 색 표시</td><td>차분하고 딱딱한 기관용 화면</td><td>거의 없음 (학교가 쓰라고 해서 씀)</td><td>"학교 표준"이라는 권위</td><td class="take">출처마다 색을 정해 일관되게 표시</td></tr>
+          <tr><th scope="row">QuillBot<span>문장 바꿔 쓰기</span></th><td>원문과 바꾼 문장을 나란히</td><td>깔끔, 모드 버튼이 위에 한 줄</td><td>모드 바꿔 가며 써 보기</td><td>바뀐 부분을 색으로 구분</td><td class="take">교정 화면에서 전후 비교를 나란히</td></tr>
+          <tr><th scope="row">뤼튼<span>국내 AI 글쓰기</span></th><td>대화형, 결과는 채팅 말풍선</td><td>밝고 친근, 여백이 넉넉해요</td><td>대화 이어 가기, 템플릿</td><td>쉬운 말투</td><td class="take">한국 대학생에게 맞는 말투와 여백</td></tr>
+          <tr><th scope="row">Duolingo<span>학습 게임</span></th><td>한 번에 한 문제, 바로 정답 피드백</td><td>원색, 캐릭터가 화면 중심</td><td>연속 학습, 보석, 리그</td><td>짧은 피드백이 즉시 옴</td><td class="take">캐릭터는 반응하는 순간에만 크게</td></tr>
+          <tr class="me"><th scope="row">에이플로<span>지금</span></th><td>점수·학점·타일 3개·표절 %·루브릭이 한 화면에</td><td>코랄·크림, 모든 카드에 두꺼운 테두리와 그림자</td><td>연속 학습, 다이아, 레벨, 1분 퀴즈, 오답 노트</td><td>교수님 기준 루브릭, 지시사항 체크</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">각 서비스의 공개 화면, 리뷰, 디자인 분석 글을 보고 정리한 관찰이에요. 서비스가 업데이트되면 달라질 수 있어요.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">에이플로 진단</span>
+    <h2>지금 화면에서 지킬 것과 고칠 것</h2>
+    <div class="diag">
+      <div class="col">
+        <h3><span class="tag good">지킬 것</span>경쟁사에 없는 강점</h3>
+        <ul>
+          <li><b>교수님 기준 채점.</b> 경쟁사는 "틀렸다"까지만 알려 줘요. 에이플로는 "이 교수님 기준으로 몇 점"을 알려 줘요. 가장 큰 차별점이에요.</li>
+          <li><b>점수 → 학점 → 승급까지 남은 점수.</b> "C0 → B+, +14점이면 승급"은 Grammarly 점수보다 학생에게 훨씬 와닿아요.</li>
+          <li><b>오답 노트와 1분 퀴즈.</b> 검사 도구가 학습 습관까지 이어지는 곳은 없어요.</li>
+          <li><b>캐릭터와 브랜드 색.</b> 국내 검사 도구들이 딱딱한 데 비해 친근해요.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3><span class="tag bad">고칠 것</span>믿음을 깎는 부분</h3>
+        <ul>
+          <li><b>검사 화면에도 게임 요소가 상시 노출.</b> 위쪽 연속·다이아·레벨 배지 3개가 과제 검사와 결과 화면에도 계속 떠 있어요.</li>
+          <li><b>모든 카드가 똑같이 강조.</b> 두꺼운 테두리와 아래 그림자가 모든 카드에 있어서 무엇이 제일 중요한지 안 보여요.</li>
+          <li><b>표절 %의 근거가 멀리 있음.</b> 18%라는 숫자와 문제 문장이 다른 화면(교정)에 있어요.</li>
+          <li><b>브랜드 밖 색이 남아 있음.</b> 목표 학점 상자는 하늘색, 표절 막대는 분홍색이라 코랄·노랑·초록 체계와 따로 놀아요.</li>
+          <li><b>캐릭터가 모든 화면에서 큼.</b> 결과 화면 맨 위를 캐릭터 말풍선이 차지해서 점수가 아래로 밀려요.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">개선안</span>
+    <h2>바꿀 순서</h2>
+    <div class="plan">
+      <div class="item p1"><div class="pri">1순위<small>결과 화면</small></div><div class="body"><h3>결과 화면을 "판정 먼저"로</h3><p>맨 위에 점수·예상 학점·위험 건수를 한 줄로, 바로 아래 "위험 3건 고치기" 버튼 하나. 루브릭과 상세는 그 아래로 내려요.</p><p class="ref">참고: <b>Grammarly</b> 점수 하나 + 수정 목록, <b>카피킬러</b> 큰 % 숫자</p></div></div>
+      <div class="item p1"><div class="pri">1순위<small>전체</small></div><div class="body"><h3>검사·결과·교정 화면에서는 게임 배지 숨기기</h3><p>연속·다이아·레벨 배지는 홈(1분 퀴즈)과 노트북에서만 보여요. 과제를 다루는 화면은 로고와 마이 버튼만 남겨요.</p><p class="ref">참고: <b>Duolingo</b>도 문제를 푸는 동안에는 보석·리그를 숨겨요</p></div></div>
+      <div class="item p2"><div class="pri">2순위<small>결과 화면</small></div><div class="body"><h3>표절 %를 문장과 바로 연결</h3><p>표절 카드 안에 의심 문장 2~3개를 미리 보여 주고, 누르면 교정 화면의 그 문장으로 이동해요.</p><p class="ref">참고: <b>카피킬러</b>·<b>Turnitin</b> 문장 하이라이트</p></div></div>
+      <div class="item p2"><div class="pri">2순위<small>전체</small></div><div class="body"><h3>강조는 한 화면에 한 카드만</h3><p>두꺼운 테두리와 아래 그림자는 화면의 주인공 카드(점수 카드, 오늘의 퀴즈) 하나에만 남기고, 나머지는 얇은 선의 평면 카드로 바꿔요.</p><p class="ref">참고: <b>Grammarly</b>·<b>뤼튼</b>의 넉넉한 여백과 적은 강조</p></div></div>
+      <div class="item p2"><div class="pri">2순위<small>색</small></div><div class="body"><h3>남은 하늘색·분홍색을 브랜드 색으로</h3><p>목표 학점 상자는 노랑(포인트), 표절 막대는 안전 초록 → 주의 노랑 → 위험 코랄로 바꿔서 앱 전체 신호 색과 맞춰요.</p></div></div>
+      <div class="item p3"><div class="pri">3순위<small>캐릭터</small></div><div class="body"><h3>캐릭터는 반응하는 순간에만 크게</h3><p>결과가 나왔을 때, 퀴즈를 맞혔을 때, 연속 학습이 끊겼을 때만 크게 등장해요. 평소에는 작은 말풍선으로 줄여서 점수가 화면 위쪽에 오게 해요.</p><p class="ref">참고: <b>Duolingo</b> 캐릭터는 알림·정답·실수 순간에 나와요</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">참고한 자료</span>
+    <div class="sources">
+      <a href="https://www.venturesquare.net/1085404/">벤처스퀘어 · 대학생 AI 과제 자가점검 루틴 (카피킬러·GPT킬러 이용 동향)</a>
+      <a href="https://chromeboard.com/extension/copykiller-표절부터-ai생성검사까지-mjnkmnpbbkgchnjnbhdjfbckbfichfoi">카피킬러X 크롬 확장 소개 (탐지 문장 색 구분 표시)</a>
+      <a href="https://findskill.ai/ko/blog/daehagsaeng-ai-hwalyongbeob-congjeongri-gwaje-ripoteu-siheomggaji-2026/">대학생 AI 활용법 총정리 2026 (AI 탐지기와 표절 검사기의 차이)</a>
+      <a href="https://screensdesign.com/showcase/grammarly-ai-writing-keyboard">Screens Design · Grammarly 화면 분석 (점수로 교정을 게임처럼)</a>
+      <a href="https://bootcamp.uxdesign.cc/ui-ux-case-study-grammarly-app-16d4ca60816f">Grammarly UX 케이스 스터디</a>
+      <a href="https://www.usecarly.com/blog/grammarly-vs-quillbot/">Grammarly vs QuillBot 비교</a>
+      <a href="https://dupple.com/reviews/quillbot">QuillBot 리뷰 2026</a>
+      <a href="https://www.925studios.co/blog/duolingo-design-breakdown">Duolingo UX Breakdown 2026</a>
+      <a href="https://uxplanet.org/ux-and-gamification-in-duolingo-40d55ee09359">UX Planet · Duolingo의 UX와 게임화</a>
+      <a href="https://devise.substack.com/p/the-pleasure-and-pain-of-streaks">The pleasure and pain of streaks (연속 학습의 부작용)</a>
+    </div>
+  </section>
+</div>

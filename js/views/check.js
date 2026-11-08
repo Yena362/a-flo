@@ -68,7 +68,7 @@ export default {
     const tags = new Set(d.tags || []);
     const running = session.phase === 'running';
     const left = isPremium() ? '' : `무료 ${remaining()}/${FREE_DAILY_FILES}회 남음`;
-    return `${topbar()}
+    return `${topbar({ game: false })}
     <header class="page-head">
       <div class="hero-avatar sm">${mascot(s.mascot, 'quiz', 60, 'bob')}</div>
       <div class="grow">

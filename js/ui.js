@@ -16,16 +16,17 @@ export function player() {
   return { s, lv, stage, stageName: STAGE_NAME[stage], name: CHARACTERS[s.mascot].name, streak: store.currentStreak() };
 }
 
-export function topbar() {
+// game: 연속·다이아·레벨 배지를 보여 줄지. 과제를 다루는 화면(검사·결과·교정)에서는 꺼서 결과에 집중하게 해요.
+export function topbar({ game = true } = {}) {
   const { s, lv, streak } = player();
   return `<header class="topbar">
     <a class="brand-mark" href="#/check" aria-label="에이플로 · 과제 검사로"><img src="assets/logo/a-flo-symbol.svg" alt="" width="40" height="40"></a>
     <a class="avatar" href="#/check" aria-label="과제 검사로">${mascot(s.mascot, 'default', 40)}</a>
-    <div class="pills">
+    ${game ? `<div class="pills">
       <span class="pill flame" title="연속 학습">${icon('local_fire_department', 'fill')}<b>${streak}일</b></span>
       <span class="pill gem" title="보유 다이아">${icon('diamond', 'fill')}<b>${s.gems.toLocaleString()}</b></span>
       <span class="pill lv" title="레벨 (경험치 ${s.xp})">${icon('bolt', 'fill')}<b>Lv.${lv}</b></span>
-    </div>
+    </div>` : '<span class="grow"></span>'}
     ${a11yMenu()}
     <a class="me ${isPremium() ? 'pro' : ''}" href="#/my" aria-label="마이 페이지${isPremium() ? ' (프리미엄)' : ''}">${icon(isPremium() ? 'workspace_premium' : 'person', 'fill')}</a>
   </header>`;

@@ -1,5 +1,5 @@
 // STEP 4. 점수 진단: 예측 점수·학점, 승급 가능성, 핵심 지표, AI·표절 의심률, 루브릭, 지시사항 체크
-import { topbar, tabbar, icon, esc, mascotTalk, player, SEVERITY, LEVEL_WORD } from '../ui.js';
+import { topbar, tabbar, icon, esc, mascotTalk, SEVERITY, LEVEL_WORD } from '../ui.js';
 
 const RUB_ICON = { instruction: 'verified', citation: 'format_quote', length: 'straighten', style: 'psychology' };
 const MOOD = { danger: 'danger', warning: 'quiz', safe: 'cheer' };
@@ -9,9 +9,9 @@ export default {
   render({ session }) {
     const r = session.ensureResult();
     if (!r) {
-      return `${topbar()}<section class="card empty-state">${mascotTalk({ mood: 'quiz', small: true, html: '"아직 검사한 과제가 없어! 과제를 올려 주면 바로 진단할게."' })}<a class="btn green big" href="#/check">${icon('upload_file')}과제 제출하러 가기</a></section>${tabbar('result')}`;
+      return `${topbar({ game: false })}<section class="card empty-state">${mascotTalk({ mood: 'quiz', small: true, html: '"아직 검사한 과제가 없어! 과제를 올려 주면 바로 진단할게."' })}<a class="btn green big" href="#/check">${icon('upload_file')}과제 제출하러 가기</a></section>${tabbar('result')}`;
     }
-    const { streak } = player();
+    const dangers = r.issues.filter(i => i.severity === 'danger').length;
     const title = session.input.title || '제목 없는 과제';
     const checks = r.checklist.filter(c => c.met !== undefined);
     const met = checks.filter(c => c.met).length;
@@ -22,16 +22,14 @@ export default {
     const groups = r.rubric.map(x => ({ ...x, list: r.issues.filter(i => i.category === x.key) })).filter(g => g.list.length);
     const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    return `${topbar()}
+    return `${topbar({ game: false })}
     <div class="print-only print-head"><b>에이플로 과제 검사 리포트</b><span>${esc(title)} · ${today} · ${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span></div>
-    ${mascotTalk({ mood: MOOD[r.mood], html: `"${esc(r.message)}"`, tint: true })}
 
     <section class="card tint stack score-card" style="gap:18px">
       <div class="between wrap">
-        ${streak ? `<span class="chip orange">${icon('local_fire_department', 'fill')}${streak}일 연속 방어 중!</span>` : '<span></span>'}
+        <p class="sm b t-blue" style="margin:0">${esc(title)}</p>
         <span class="chip ${r.source === 'ai' ? 'green' : ''}" title="${esc(session.aiError || '')}">${icon(r.source === 'ai' ? 'auto_awesome' : 'rule')}${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span>
       </div>
-      <p class="sm b t-blue" style="margin:0">${esc(title)}</p>
       <div class="between wrap" style="align-items:flex-end">
         <div><div class="b muted">AI 종합 예측 점수</div><h1 class="score-big">${r.score}<small> / 100점</small></h1>
           ${moved ? `<div class="sm b ${moved > 0 ? 't-green' : 't-red'}">${icon(moved > 0 ? 'trending_up' : 'trending_down')}처음 ${base}점 → 지금 ${r.score}점 (${moved > 0 ? '+' : ''}${moved})</div>` : ''}</div>
@@ -45,6 +43,7 @@ export default {
         <div class="tile">${icon('bolt', 'fill t-orange')}수정 포인트<b class="${r.issues.length ? 't-red' : 't-green'}">${r.issues.length}건 발견</b></div>
         <div class="tile">${icon('shield', 'fill t-blue')}표절 안전성<b class="${r.plagiarism.level === 'safe' ? 't-green' : r.plagiarism.level === 'warning' ? 't-orange' : 't-red'}">${SAFETY[r.plagiarism.level]}</b></div>
       </div>
+      <a class="btn green big no-print" href="#/editor">${icon('spellcheck')}${dangers ? `위험 ${dangers}건부터 고치기` : r.issues.length ? `수정 포인트 ${r.issues.length}건 다듬기` : '교정 에디터에서 마지막 점검'}</a>
     </section>
 
     <section class="card stack plag-card">
@@ -57,6 +56,8 @@ export default {
       <div class="ratelegend"><span class="t-green">● 안전 (0~10%)</span><span style="color:#B03A6B">● 주의 (11~20%)</span><span class="t-red">● 위험 (21%+)</span></div>
       <p class="xs muted b" style="margin:0">출처 없는 인용·AI 문체 표현으로 계산한 예상치예요. 실제 표절 검사기 결과와 다를 수 있어요.</p>
     </section>
+
+    ${mascotTalk({ mood: MOOD[r.mood], html: `"${esc(r.message)}"`, tint: true, small: true, badge: false })}
 
     <div class="between"><h2 class="h2">루브릭 정밀 평가</h2><span class="sm muted b">총 ${r.rubric.length}개 항목 검토됨</span></div>
     ${r.rubric.map(x => `<section class="card rub">
