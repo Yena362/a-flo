@@ -135,7 +135,7 @@ export default {
         }).join('')}
       </div>
       ${done
-        ? `<div class="explain ${correct ? 'safe' : 'danger'}"><b>${correct ? '정답이에요! 감점 방어 완료' : `아깝다! 정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p>${!correct && src.mine ? `<p class="sm b">${icon('bookmark_added', 'fill')} 아래 오답 노트에 담았어요</p>` : ''}</div>
+        ? `<div class="explain ${correct ? 'safe' : 'danger'}"><b>${correct ? '정답이에요! 감점 방어 완료' : `아깝다! 정답은 ${LETTERS[q.answer]}`}</b><p>${esc(q.explain)}</p>${!correct ? `<p class="sm b">${icon('bookmark_added', 'fill')} 아래 오답 노트에 담았어요</p>` : ''}</div>
            <button class="btn ${correct ? 'green' : 'orange'} big" id="next">${icon(correct ? 'arrow_forward' : 'refresh')}${correct ? '다음 문제 풀기' : '새로운 문제 풀기'}</button>`
         : ''}
     </section>
@@ -192,7 +192,8 @@ export default {
       const q = dailyQuestion(MODE, today(), st.offset, src.list);
       const picked = Number(b.dataset.i);
       saveQ({ picked });
-      if (picked !== q.answer && src.mine) addWrong(q, src.sources[q.source - 1]?.name); // 내 예상 문제를 틀리면 오답 노트로
+      // 틀리면 오답 노트로 (기본 문제 은행 문제도 함께)
+      if (picked !== q.answer) addWrong(q, src.mine ? src.sources[q.source - 1]?.name : '1분 퀴즈');
       if (picked === q.answer) {
         const r = store.recordCorrect();
         const rewardedKey = store.get().rewarded?.[REWARD_KEY()];
