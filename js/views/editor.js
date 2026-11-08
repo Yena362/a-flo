@@ -276,6 +276,12 @@ export default {
       rerender();
     });
 
+    // 결과 화면에서 의심 문장을 눌러 들어왔으면 그 문장으로 한 번 스크롤
+    if (session.jumpTo) {
+      const target = root.querySelector(`mark.hl[data-id="${CSS.escape(session.jumpTo)}"]`);
+      session.jumpTo = null;
+      setTimeout(() => target?.scrollIntoView({ block: 'center' })); // 화면 전환 뒤 맨 위로 가는 스크롤보다 나중에
+    }
     const onKey = e => { if (e.key === 'Escape' && session.sheet) closeSheet(); };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = session.sheet ? 'hidden' : '';

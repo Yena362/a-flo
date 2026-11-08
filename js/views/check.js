@@ -81,7 +81,7 @@ export default {
 
     <form class="check-layout" id="form" novalidate>
       <div class="check-steps">
-        <section class="card stack" aria-labelledby="st1">
+        <section class="card lead stack" aria-labelledby="st1">
           ${stepHead(1, '<span id="st1">과제 올리기</span>', true, '파일을 올리거나 본문을 붙여 넣어 주세요.')}
           <div id="file-slot">${d.text ? fileCard(d.fileName || d.title || '불러온 과제', d.text.replace(/\s+/g, ' ').trim().length, d.fileKind) : ''}</div>
           <label class="drop big-drop" id="drop">

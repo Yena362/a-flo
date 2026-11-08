@@ -15,7 +15,7 @@
   --orange: #EA7A1A; --orange-rim: #C2410C; --orange-bg: #FFF1DD; --orange-ink: #8C5000;
   --red: #E5484D; --red-rim: #C2353A; --red-bg: #FEE2E2; --red-ink: #991B1B;
   --yellow: #FFC23D; --yellow-rim: #E0A21E; --yellow-bg: #FEF3C7; --yellow-ink: #8A5300;
-  --blue: #A2D2FF; --blue-rim: #6FA8DC; --blue-ink: #0E3A63; --blue-bg: #DCEEFF;
+  --blue: #FFD77A; --blue-rim: #E0A21E; --blue-ink: #7A4A00; --blue-bg: #FFF3D1;   /* 보조 강조: 선샤인 노랑 계열 (예전 하늘색 자리, 이름은 그대로) */
   --font: 'Pretendard', 'Pretendard Variable', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --r-md: 16px; --r-lg: 24px; --r-xl: 32px;
 }
@@ -68,15 +68,17 @@ h1, h2, h3 { margin: 0; color: var(--ink); letter-spacing: -0.02em; }
 .pill.flame b, .pill.gem b, .pill.lv b { color: inherit; }
 
 /* 카드 */
-.card { background: var(--card); border: 2px solid var(--line); border-radius: var(--r-lg); box-shadow: 0 4px 0 0 var(--line); padding: 20px; }
-.card.tint { background: var(--tint); border-color: #F6DCCB; box-shadow: 0 4px 0 0 #EFD0BC; }
+/* 카드는 기본 평면. 두꺼운 테두리와 아래 그림자는 화면의 주인공 카드(.lead) 하나에만 */
+.card { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--r-lg); padding: 20px; }
+.card.tint { background: var(--tint); border-color: #F6DCCB; }
+.card.lead { border-width: 2px; border-color: #EFD0BC; box-shadow: 0 4px 0 0 #EFD0BC; }
 .card.flat { box-shadow: none; }
 .card-title { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 18px; flex: 1 1 auto; min-width: 0; line-height: 1.35; }
 .card-title .ms { color: var(--green-dark); }
 
 /* 칩 */
 .chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 800; background: var(--card); border: 2px solid var(--line); white-space: nowrap; }
-.chip.blue { background: var(--blue-bg); border-color: #C6E0FA; color: var(--blue-ink); }
+.chip.blue { background: var(--blue-bg); border-color: #FFE29A; color: var(--blue-ink); }
 .chip.green { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok-dark); }
 .chip.orange { background: var(--orange-bg); border-color: #FFD39B; color: var(--orange-ink); }
 .chip.red { background: var(--red-bg); border-color: #FFB4B4; color: var(--red-ink); }
@@ -185,7 +187,7 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .drop.over { border-color: var(--green); background: #FFF0E8; }
 .drop .ms { font-size: 32px; color: var(--muted); }
 .file { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; background: #FFF0E8; border: 2px solid #FFCDBC; }
-.file .ms.doc { font-size: 32px; color: #2F6FD6; }
+.file .ms.doc { font-size: 32px; color: var(--green-dark); }
 details.paste summary { cursor: pointer; font-weight: 800; padding: 6px 0; }
 
 /* 분석 진행 */
@@ -206,27 +208,33 @@ details.paste summary { cursor: pointer; font-weight: 800; padding: 6px 0; }
 .score-big small { font-size: 26px; color: var(--muted); font-weight: 900; }
 .target { border-radius: 20px; background: var(--blue); box-shadow: 0 5px 0 var(--blue-rim); padding: 12px 18px; text-align: center; }
 .target .g { font-size: 34px; font-weight: 900; line-height: 1.1; display: flex; align-items: center; gap: 6px; justify-content: center; }
-.target .g .to { color: #8A4A64; }
+.target .g .to { color: var(--green-dark); }
 .tile { background: #fff; border-radius: 18px; border: 2px solid #F4ECE3; padding: 14px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 800; font-size: 14px; }
 .tile b { font-size: 19px; font-weight: 900; }
 .ratebar { position: relative; display: grid; grid-template-columns: 25fr 25fr 50fr; gap: 4px; height: 20px; padding: 2px; background: #F4ECE3; border-radius: 999px; }
 .ratebar .z { border-radius: 999px; }
-.ratebar .z.safe { background: #9ED9B8; } .ratebar .z.warning { background: #FFB0CD; } .ratebar .z.danger { background: #FF8FB4; }
+.ratebar .z.safe { background: #9ED9B8; } .ratebar .z.warning { background: #FFD77A; } .ratebar .z.danger { background: #F59A84; }
 .ratebar .needle { position: absolute; top: -4px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); }
 /* 넓은 화면에서 나란히 놓이는 점수 카드 · 표절 의심률 카드 높이 맞추기 */
 @media (min-width: 1024px) {
   .view-result > .score-card, .view-result > .plag-card { align-self: stretch; }
-  .view-result > .plag-card { justify-content: space-between; }
+  .view-result > .plag-card, .view-result > .score-card { justify-content: space-between; }
 }
 .ratelegend { display: grid; grid-template-columns: 25fr 25fr 50fr; font-size: 13px; font-weight: 800; }
+.plag-sents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.plag-sents a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--tint); border: 1.5px solid var(--line); color: var(--ink); text-decoration: none; }
+.plag-sents a:hover { border-color: var(--green); }
+.plag-sents .grow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.plag-sents .q { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.plag-sents .ms { color: var(--muted); }
 .rub { display: flex; flex-direction: column; gap: 10px; }
 .rub-head { display: flex; align-items: center; gap: 12px; }
-.rub-icon { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--blue-bg); color: #2F6FD6; flex-shrink: 0; }
+.rub-icon { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--green-bg); color: var(--green-dark); flex-shrink: 0; }
 .rub-score { margin-left: auto; text-align: right; white-space: nowrap; flex-shrink: 0; }
-.rub-score b { font-size: 26px; font-weight: 900; color: #2F6FD6; }
+.rub-score b { font-size: 26px; font-weight: 900; color: var(--ink); }
 .meter { height: 14px; background: #F4ECE3; border-radius: 999px; overflow: hidden; }
 .meter span { display: block; height: 100%; border-radius: 999px; }
-.m-safe { background: #7DBDF5; } .m-warning { background: var(--orange); } .m-danger { background: var(--red); }
+.m-safe { background: var(--ok); } .m-warning { background: var(--orange); } .m-danger { background: var(--red); }
 .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .checklist li { display: flex; gap: 10px; align-items: flex-start; }
 .checklist .ms { font-size: 26px; }
@@ -442,7 +450,7 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .map { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .map > li { border-radius: 18px; padding: 12px 14px; border: 2px solid; }
 .map > li > b { display: block; font-size: 16px; margin-bottom: 6px; }
-.map .b0 { background: #FFF0E8; border-color: #FFCDBC; } .map .b1 { background: var(--blue-bg); border-color: #A9CCF2; }
+.map .b0 { background: #FFF0E8; border-color: #FFCDBC; } .map .b1 { background: var(--blue-bg); border-color: #FFE29A; }
 .map .b2 { background: var(--orange-bg); border-color: #FFD39B; } .map .b3 { background: #F6EEFF; border-color: #D9C2EA; }
 .map ul { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 3px solid rgba(27, 43, 71, .15); display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 14.5px; }
 .map ul ul { font-weight: 600; color: var(--ink-2); margin-top: 4px; }
@@ -482,7 +490,7 @@ input, textarea, select { font-size: 16px; } /* iOS 확대 방지 */
 .mm-node.d2 { font-weight: 700; }
 .mm-node.d3 { font-weight: 600; font-size: 13.5px; border-style: dashed; }
 .mm-node.c0 { background: #EEFBE3; border-color: #9BD66E; } .mm-node.c0 .mm-toggle { color: #4E9A1D; }
-.mm-node.c1 { background: #E5F1FF; border-color: #93C0EC; } .mm-node.c1 .mm-toggle { color: #2F6FD6; }
+.mm-node.c1 { background: var(--blue-bg); border-color: #FFE29A; } .mm-node.c1 .mm-toggle { color: var(--blue-ink); }
 .mm-node.c2 { background: #FFF2DE; border-color: #F5C47A; } .mm-node.c2 .mm-toggle { color: #C77A0A; }
 .mm-node.c3 { background: #F5EDFF; border-color: #CDB0EC; } .mm-node.c3 .mm-toggle { color: #8456B8; }
 .mm-node.c4 { background: #FFEBEF; border-color: #F2A6B4; } .mm-node.c4 .mm-toggle { color: #C2405A; }

@@ -115,7 +115,7 @@ export default {
       </ol>
     </section>
 
-    <section class="card quiz stack" style="gap:16px">
+    <section class="card lead quiz stack" style="gap:16px">
       <div class="row wrap">
         <span class="chip blue">${icon(src.mine ? 'menu_book' : 'timer')}오늘의 1분 퀴즈 · ${src.topic}</span>
         ${s.rewarded?.[REWARD_KEY()] ? `<span class="chip green">${icon('check_circle', 'fill')}오늘 보상 받음</span>` : `<span class="chip blue">${icon('diamond', 'fill')}+${REWARD.gems} 보상</span>`}

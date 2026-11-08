@@ -4,6 +4,9 @@ import { topbar, tabbar, icon, esc, mascotTalk, SEVERITY, LEVEL_WORD } from '../
 const RUB_ICON = { instruction: 'verified', citation: 'format_quote', length: 'straighten', style: 'psychology' };
 const MOOD = { danger: 'danger', warning: 'quiz', safe: 'cheer' };
 const SAFETY = { safe: '안전', warning: '주의 필요', danger: '위험' };
+// 표절·AI 의심률을 올리는 문제들 (출처 없는 인용, AI 문체, 근거 없는 수치)
+const PLAG_TITLES = ['출처 없는 직접 인용', 'AI 문체 의심 표현', '근거 없는 수치'];
+const isPlag = i => i.group === 'cliche' || PLAG_TITLES.includes(i.title);
 
 export default {
   render({ session }) {
@@ -12,6 +15,8 @@ export default {
       return `${topbar({ game: false })}<section class="card empty-state">${mascotTalk({ mood: 'quiz', small: true, html: '"아직 검사한 과제가 없어! 과제를 올려 주면 바로 진단할게."' })}<a class="btn green big" href="#/check">${icon('upload_file')}과제 제출하러 가기</a></section>${tabbar('result')}`;
     }
     const dangers = r.issues.filter(i => i.severity === 'danger').length;
+    const plagIssues = r.issues.filter(i => isPlag(i) && i.start >= 0);
+    const snip = i => { const t = session.input.text.slice(i.start, Math.min(i.end, i.start + 46)); return t + (i.end - i.start > 46 ? '…' : ''); };
     const title = session.input.title || '제목 없는 과제';
     const checks = r.checklist.filter(c => c.met !== undefined);
     const met = checks.filter(c => c.met).length;
@@ -25,7 +30,7 @@ export default {
     return `${topbar({ game: false })}
     <div class="print-only print-head"><b>에이플로 과제 검사 리포트</b><span>${esc(title)} · ${today} · ${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span></div>
 
-    <section class="card tint stack score-card" style="gap:18px">
+    <section class="card tint lead stack score-card" style="gap:18px">
       <div class="between wrap">
         <p class="sm b t-blue" style="margin:0">${esc(title)}</p>
         <span class="chip ${r.source === 'ai' ? 'green' : ''}" title="${esc(session.aiError || '')}">${icon(r.source === 'ai' ? 'auto_awesome' : 'rule')}${r.source === 'ai' ? 'AI 채점 반영' : '기본 채점'}</span>
@@ -53,7 +58,12 @@ export default {
         <span class="z safe"></span><span class="z warning"></span><span class="z danger"></span>
         <span class="needle" style="left:${Math.min(98, Math.max(2, r.plagiarism.rate * 2.5))}%"></span>
       </div>
-      <div class="ratelegend"><span class="t-green">● 안전 (0~10%)</span><span style="color:#B03A6B">● 주의 (11~20%)</span><span class="t-red">● 위험 (21%+)</span></div>
+      <div class="ratelegend"><span class="t-green">● 안전 (0~10%)</span><span class="t-orange">● 주의 (11~20%)</span><span class="t-red">● 위험 (21%+)</span></div>
+      ${plagIssues.length ? `<div class="stack plag-list" style="gap:8px">
+        <p class="sm b" style="margin:0">이 문장들 때문에 올라갔어요</p>
+        <ul class="plag-sents">${plagIssues.slice(0, 3).map(i => `<li><a href="#/editor" class="no-print" data-sel="${esc(i.id)}"><span class="dot ${i.severity}"></span><span class="grow"><span class="q">${esc(snip(i))}</span><span class="xs muted b">${esc(i.title)}</span></span>${icon('chevron_right')}</a></li>`).join('')}</ul>
+        ${plagIssues.length > 3 ? `<p class="xs muted b" style="margin:0">외 ${plagIssues.length - 3}문장은 교정 화면에서 볼 수 있어요</p>` : ''}
+      </div>` : '<p class="sm b t-green" style="margin:0">의심 문장이 없어요</p>'}
       <p class="xs muted b" style="margin:0">출처 없는 인용·AI 문체 표현으로 계산한 예상치예요. 실제 표절 검사기 결과와 다를 수 있어요.</p>
     </section>
 
@@ -97,7 +107,9 @@ export default {
     ${tabbar('result')}`;
   },
 
-  mount(root) {
+  mount(root, { session }) {
+    // 의심 문장을 누르면 교정 화면에서 그 문장을 바로 골라 둬요
+    root.querySelectorAll('[data-sel]').forEach(a => a.addEventListener('click', () => { session.selected = a.dataset.sel; session.jumpTo = a.dataset.sel; session.sheet = true; }));
     root.querySelector('#print')?.addEventListener('click', () => {
       // 인쇄할 때는 접힌 목록도 모두 펼침
       const closed = [...root.querySelectorAll('details:not([open])')];
