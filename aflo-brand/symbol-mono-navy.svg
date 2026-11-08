@@ -1,0 +1,6 @@
+<svg width="240" height="240" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs><mask id="m1" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+<rect width="120" height="120" fill="#fff"/><rect y="36" width="120" height="7" fill="#000"/>
+<g fill="#000"><circle cx="47" cy="66" r="5.5"/><circle cx="73" cy="66" r="5.5"/></g><path d="M52.5 77 Q60 85 67.5 77" stroke="#000" stroke-width="3.6" stroke-linecap="round" fill="none"/></mask></defs>
+<path d="M60 10 Q66 10 70 17 L106 86 Q112 100 96 100 L24 100 Q8 100 14 86 L50 17 Q54 10 60 10 Z" fill="#1E2A4A" mask="url(#m1)"/>
+</svg>

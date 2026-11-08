@@ -588,6 +588,7 @@ html.hc mark.hl.danger { background: #FFD1D6; color: #000; text-decoration-color
   .tabbar .t-long, .tabbar .desk-only { display: flex; }
   .tabbar .tab-brand { display: flex; align-items: center; gap: 10px; min-height: 56px; margin-bottom: 12px; font-size: 22px; font-weight: 900; color: var(--ink); }
   .tabbar .tab-brand:hover { background: none; }
+  .tabbar .tab-brand img { display: block; width: 150px; height: auto; }
 
   .toast { left: calc(50% + 124px); bottom: 32px; }
   .sticky-cta { bottom: 0; }

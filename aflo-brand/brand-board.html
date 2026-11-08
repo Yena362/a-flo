@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>에이플로 브랜드 보드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{--coral:#FF6B4A;--sun:#FFC23D;--navy:#1E2A4A;--cream:#FFF4EA;--blush:#FFA48C;--line:#EADFD3}
+  *{box-sizing:border-box}
+  body{margin:0;background:#FBF8F4;color:var(--navy);font-family:Pretendard,"Noto Sans KR",sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 16px 80px}
+  h1{font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.55;margin:0 0 8px}
+  h2{font-size:13px;font-weight:700;letter-spacing:.06em;opacity:.5;margin:56px 0 16px;text-transform:uppercase}
+  .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:40px;display:flex;align-items:center;justify-content:center}
+  .hero{min-height:280px}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .logo{display:flex;align-items:center;gap:18px}
+  .word{font-weight:800;letter-spacing:-.04em;line-height:1}
+  .icon{width:160px;height:160px;border-radius:36px;display:flex;align-items:center;justify-content:center}
+  .sw{border-radius:20px;overflow:hidden;border:1px solid var(--line);background:#fff}
+  .sw div:first-child{height:110px}
+  .sw p{margin:0;padding:12px 16px;font-size:13px;line-height:1.5}
+  .sw b{display:block;font-size:14px}
+  .type{background:#fff;border:1px solid var(--line);border-radius:24px;padding:32px}
+  .type .big{font-size:56px;font-weight:800;letter-spacing:-.04em}
+  .type .mid{font-size:24px;font-weight:600;margin-top:8px}
+  .type .small{font-size:15px;opacity:.7;margin-top:8px}
+  .faces{display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+  .faces figure{margin:0;text-align:center;font-size:13px;opacity:.8}
+  @media (max-width:600px){.card{padding:24px}.hero .word{font-size:48px!important}.hero svg{width:72px;height:72px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <clipPath id="b"><path d="M60 10 Q66 10 70 17 L106 86 Q112 100 96 100 L24 100 Q8 100 14 86 L50 17 Q54 10 60 10 Z"/></clipPath>
+    <symbol id="body" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="108" rx="36" ry="4" fill="#1E2A4A" fill-opacity="0.12"/>
+      <g clip-path="url(#b)"><rect width="120" height="120" fill="#FF6B4A"/><rect width="120" height="36" fill="#FFC23D"/><rect y="36" width="120" height="7" fill="#FFF4EA"/></g>
+      <ellipse cx="36" cy="77" rx="5.5" ry="3.2" fill="#FFA48C"/><ellipse cx="84" cy="77" rx="5.5" ry="3.2" fill="#FFA48C"/>
+    </symbol>
+    <symbol id="face-happy" viewBox="0 0 120 120">
+      <circle cx="47" cy="66" r="5.5" fill="#1E2A4A"/><circle cx="73" cy="66" r="5.5" fill="#1E2A4A"/>
+      <circle cx="48.8" cy="64.2" r="1.8" fill="#fff"/><circle cx="74.8" cy="64.2" r="1.8" fill="#fff"/>
+      <path d="M52.5 77 Q60 85 67.5 77" stroke="#1E2A4A" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="face-wink" viewBox="0 0 120 120">
+      <circle cx="47" cy="66" r="5.5" fill="#1E2A4A"/><circle cx="48.8" cy="64.2" r="1.8" fill="#fff"/>
+      <path d="M67 66 Q73 61 79 66" stroke="#1E2A4A" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+      <path d="M52 76 Q60 87 68 76 Z" fill="#1E2A4A"/>
+    </symbol>
+    <symbol id="face-joy" viewBox="0 0 120 120">
+      <path d="M41 67 Q47 61 53 67" stroke="#1E2A4A" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+      <path d="M67 67 Q73 61 79 67" stroke="#1E2A4A" stroke-width="3.6" stroke-linecap="round" fill="none"/>
+      <path d="M51 75 Q60 89 69 75 Z" fill="#1E2A4A"/>
+    </symbol>
+    <symbol id="mascot" viewBox="0 0 120 120"><use href="#body"/><use href="#face-happy"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <h1>A-flo · Brand Identity 2026</h1>
+
+  <h2>기본 로고</h2>
+  <div class="card hero">
+    <div class="logo"><svg width="104" height="104"><use href="#mascot"/></svg><span class="word" style="font-size:76px">에이플로</span></div>
+  </div>
+
+  <h2>로고 변형</h2>
+  <div class="grid">
+    <div class="card" style="background:var(--navy);border-color:var(--navy)"><div class="logo"><svg width="56" height="56"><use href="#mascot"/></svg><span class="word" style="font-size:40px;color:var(--cream)">에이플로</span></div></div>
+    <div class="card" style="background:var(--cream)"><div class="logo"><svg width="56" height="56"><use href="#mascot"/></svg><span class="word" style="font-size:40px">A-flo</span></div></div>
+    <div class="card"><div class="logo" style="gap:10px"><svg width="28" height="28"><use href="#mascot"/></svg><span class="word" style="font-size:20px">에이플로</span></div></div>
+  </div>
+
+  <h2>단색 버전 · 인쇄·도장·각인용</h2>
+  <div class="grid">
+    <div class="card"><img src="logo-mono-navy.svg" alt="에이플로 단색 네이비 로고" style="width:240px;height:auto"></div>
+    <div class="card" style="background:var(--coral);border-color:var(--coral)"><img src="logo-mono-white.svg" alt="에이플로 단색 화이트 로고" style="width:240px;height:auto"></div>
+    <div class="card" style="background:var(--navy);border-color:var(--navy)"><img src="logo-mono-white.svg" alt="에이플로 단색 화이트 로고" style="width:240px;height:auto"></div>
+  </div>
+
+  <h2>여백 · 최소 크기</h2>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="card" style="flex-direction:column;gap:20px">
+      <div style="position:relative;padding:30px;border:1.5px dashed var(--coral);border-radius:6px;background:repeating-linear-gradient(45deg,#FFF4EA 0 6px,#fff 6px 12px)">
+        <img src="logo-horizontal.svg" alt="여백 가이드" style="display:block;width:240px;height:auto;background:#fff">
+      </div>
+      <p style="margin:0;font-size:13px;line-height:1.6;text-align:center;opacity:.75">로고 주변에는 <b>마스코트 노란 머리 높이(x)</b>만큼<br>아무것도 두지 않아요.</p>
+    </div>
+    <div class="card" style="flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:flex-end;gap:28px">
+        <figure style="margin:0;text-align:center"><img src="logo-horizontal.svg" alt="" style="width:80px;height:auto"><figcaption style="font-size:12px;opacity:.6;margin-top:6px">가로 로고 80px</figcaption></figure>
+        <figure style="margin:0;text-align:center"><img src="symbol.svg" alt="" style="width:20px;height:20px"><figcaption style="font-size:12px;opacity:.6;margin-top:6px">심볼 20px</figcaption></figure>
+      </div>
+      <p style="margin:0;font-size:13px;line-height:1.6;text-align:center;opacity:.75">이보다 작으면 얼굴이 뭉개져요.<br>더 작은 곳(파비콘 16px)엔 단색 심볼을 써요.</p>
+    </div>
+  </div>
+
+  <h2>앱 아이콘</h2>
+  <div class="grid">
+    <div class="card"><div class="icon" style="background:var(--cream)"><svg width="118" height="118"><use href="#mascot"/></svg></div></div>
+    <div class="card"><div class="icon" style="background:var(--navy)"><svg width="118" height="118"><use href="#mascot"/></svg></div></div>
+    <div class="card"><div class="icon" style="background:#FFE1D6"><svg width="118" height="118"><use href="#mascot"/></svg></div></div>
+  </div>
+
+  <h2>마스코트 표정</h2>
+  <div class="card">
+    <div class="faces">
+      <figure><svg width="110" height="110"><use href="#body"/><use href="#face-happy"/></svg><figcaption>기본</figcaption></figure>
+      <figure><svg width="110" height="110"><use href="#body"/><use href="#face-wink"/></svg><figcaption>윙크</figcaption></figure>
+      <figure><svg width="110" height="110"><use href="#body"/><use href="#face-joy"/></svg><figcaption>신남</figcaption></figure>
+    </div>
+  </div>
+
+  <h2>컬러</h2>
+  <div class="grid">
+    <div class="sw"><div style="background:#FF6B4A"></div><p><b>A-flo 코랄</b>#FF6B4A · 메인</p></div>
+    <div class="sw"><div style="background:#FFC23D"></div><p><b>선샤인</b>#FFC23D · 포인트</p></div>
+    <div class="sw"><div style="background:#1E2A4A"></div><p><b>딥 네이비</b>#1E2A4A · 글자</p></div>
+    <div class="sw"><div style="background:#FFF4EA"></div><p><b>크림</b>#FFF4EA · 배경</p></div>
+  </div>
+
+  <h2>타이포그래피 · Pretendard</h2>
+  <div class="type">
+    <div class="big">에이플로</div>
+    <div class="mid">일이 술술 흐르도록 — SemiBold 600</div>
+    <div class="small">본문은 Pretendard Regular 400, 제목은 ExtraBold 800, 자간 -4%</div>
+  </div>
+</div>
+</body>
+</html>

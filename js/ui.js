@@ -44,7 +44,7 @@ export function tabbar(active) {
   const tab = ([id, label, ic, long]) =>
     `<a href="#/${id}" class="${active === id ? 'on' : ''}" ${active === id ? 'aria-current="page"' : ''}>${icon(ic)}<span class="t-short">${label}</span><span class="t-long">${long}</span></a>`;
   return `<nav class="tabbar" aria-label="주요 메뉴">
-    <a class="tab-brand" href="#/check">${mascot(store.get().mascot, 'default', 32)}에이플로</a>
+    <a class="tab-brand" href="#/check"><img src="assets/logo/a-flo-logo.svg" alt="A-flo 에이플로" width="150" height="50"></a>
     ${TABS.slice(0, 4).map(tab).join('')}
     <a href="#/home?wn=1" class="desk-only">${icon('assignment_late')}<span>오답노트</span></a>
     ${tab(TABS[4])}
