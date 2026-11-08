@@ -162,7 +162,7 @@ export default {
     return `${topbar()}
     <section class="card stack">
       <div class="doc-head">${icon('description', 'fill')}<h1>${esc(input.title || '제목 없는 과제')}</h1></div>
-      ${bulk.length >= 2 ? `<button class="btn blue" id="bulk">${icon('auto_fix_high')}맞춤법·형식 ${bulk.length}건 한 번에 고치기</button>` : ''}
+      ${bulk.length >= 2 ? `<button class="btn blue" id="bulk">${icon('bolt', 'fill')}원클릭 반영 · 맞춤법·형식 ${bulk.length}건</button>` : ''}
       <div class="counts"><span class="chip red"><span class="dot danger"></span>위험 ${dangers}</span><span class="chip orange"><span class="dot warning"></span>주의 ${warnings}</span><span class="chip blue"><span class="dot safe"></span>통과 ${passed}문단</span><span class="chip xs">${r.source === 'ai' ? 'AI 채점' : '기본 채점'}</span></div>
       ${mascotTalk({ mood: MOOD[r.mood], small: true, badge: false, tint: true, html: esc(r.message) })}
     </section>

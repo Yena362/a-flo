@@ -39,9 +39,15 @@ function week(streak, solved) {
 }
 
 // 홈 오답 노트: 예상 문제에서 틀린 문제를 하나씩 펼쳐 다시 풀기
-function wrongNoteCard(session) {
+function wrongNoteCard(session, focus = false) {
   const items = wrongList();
-  if (!items.length) return '';
+  if (!items.length) {
+    // 사이드바 "오답노트"로 들어왔는데 비어 있으면 안내만 보여 줘요
+    return focus ? `<section class="card stack wrong-note" aria-labelledby="wn-title">
+      <h2 class="h3" id="wn-title" style="margin:0">${icon('bookmark', 'fill t-orange')} 오답 노트</h2>
+      <p class="sm muted b" style="margin:0">아직 틀린 문제가 없어요. 1분 퀴즈나 예상 문제에서 틀리면 여기에 모여요.</p>
+    </section>` : '';
+  }
   const SHOW = 3;
   const shown = session.wnAll ? items : items.slice(0, SHOW);
   return `<section class="card stack wrong-note" aria-labelledby="wn-title">
@@ -74,7 +80,7 @@ function wrongNoteCard(session) {
 }
 
 export default {
-  render({ store, session }) {
+  render({ store, session, params }) {
     const { s, stageName, name, streak } = player();
     const solved = store.solvedToday();
     const broken = store.streakBroken();
@@ -134,7 +140,7 @@ export default {
         : ''}
     </section>
 
-    ${wrongNoteCard(session)}
+    ${wrongNoteCard(session, params?.get('wn') === '1')}
 
     <section class="card tint stack">
       <div class="row wrap"><span class="chip orange">${icon('rocket_launch')}과제 제출 직전 긴급 케어</span></div>
@@ -168,7 +174,8 @@ export default {
     ${tabbar('home')}`;
   },
 
-  mount(root, { store, session, rerender }) {
+  mount(root, { store, session, params, rerender }) {
+    if (params?.get('wn') === '1') setTimeout(() => root.querySelector('.wrong-note')?.scrollIntoView({ block: 'start' }));
     const src = quizSource();
     const key = src.key;
     const saveQ = patch => {

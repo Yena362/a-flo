@@ -4,6 +4,7 @@ import * as store from './store.js';
 import { initCloud } from './cloud.js';
 import { analyze } from './analyzer.js';
 import { reapply } from './ai.js';
+import { initA11y } from './a11y.js';
 import home from './views/home.js';
 import check from './views/check.js';
 import result from './views/result.js';
@@ -64,6 +65,7 @@ function render({ keepScroll = false } = {}) {
 }
 
 window.addEventListener('hashchange', () => render());
+initA11y();
 render();
 
 // 로그인 상태가 바뀌거나 클라우드 기록을 받아오면 기록을 보여 주는 화면만 다시 그려요.
