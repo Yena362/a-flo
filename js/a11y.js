@@ -1,17 +1,20 @@
 // 유니버설 접근성: 글자 크기 · 고대비 · 화면 읽어주기
 // 설정은 이 기기에만 저장돼요. 버튼은 ui.js 상단 바의 "접근성" 메뉴에 있어요.
-export const SCALES = [0.9, 1, 1.15, 1.3];
+export const SCALES = [0.7, 0.8, 0.9, 1, 1.15, 1.3];
+const DEFAULT = SCALES.indexOf(1);
 const KEY = 'aflo-a11y';
+const VERSION = 2; // v1은 [0.9, 1, 1.15, 1.3] 순번으로 저장했어요 → 앞에 70%·80%가 생겨 2칸 밀어 읽어요
 
 export function a11ySettings() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || '{}');
-    return { scale: SCALES[s.scale] ? s.scale : 1, contrast: !!s.contrast };
-  } catch { return { scale: 1, contrast: false }; }
+    const idx = typeof s.scale === 'number' && s.v !== VERSION ? s.scale + 2 : s.scale;
+    return { scale: SCALES[idx] ? idx : DEFAULT, contrast: !!s.contrast };
+  } catch { return { scale: DEFAULT, contrast: false }; }
 }
 
 function save(next) {
-  try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* 저장이 안 돼도 이번 화면에는 적용돼요 */ }
+  try { localStorage.setItem(KEY, JSON.stringify({ ...next, v: VERSION })); } catch { /* 저장이 안 돼도 이번 화면에는 적용돼요 */ }
   apply(next);
 }
 
